@@ -3,7 +3,7 @@
     var isInicio = NavActive.IsMatch(ViewContext, "Home", "Index");
 }
 
-<aside class="app-sidebar" aria-label="Navegación principal">
+<aside id="app-sidebar" class="app-sidebar" aria-label="Navegación principal">
     <a class="app-brand" asp-controller="Home" asp-action="Index">Inventario</a>
     <nav class="app-nav" aria-label="Menú">
         <a class="app-nav-link@(isInicio ? " is-active" : null)"

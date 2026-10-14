@@ -6,6 +6,18 @@
 }
 
 <header class="app-header">
+    <div class="app-header-start">
+        <button type="button"
+                class="btn btn-ghost app-nav-toggle"
+                id="app-nav-toggle"
+                aria-controls="app-sidebar"
+                aria-expanded="false"
+                aria-label="Abrir menú de navegación"
+                data-nav-toggle>
+            <svg class="icon app-nav-toggle-icon-open" aria-hidden="true" focusable="false"><use href="#lucide-menu"/></svg>
+            <svg class="icon app-nav-toggle-icon-close" aria-hidden="true" focusable="false" hidden><use href="#lucide-x"/></svg>
+        </button>
+    </div>
     <div class="app-header-actions">
         <span class="app-header-user" id="header-display-name">@displayName</span>
         <details class="app-header-menu">

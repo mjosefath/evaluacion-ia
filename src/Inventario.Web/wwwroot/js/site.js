@@ -184,6 +184,62 @@
     }
   }
 
+  const NAV_MQ = window.matchMedia("(max-width: 800px)");
+  const navToggle = document.getElementById("app-nav-toggle");
+  const navOverlay = document.getElementById("app-nav-overlay");
+  const navSidebar = document.getElementById("app-sidebar");
+  const navIconOpen = navToggle?.querySelector(".app-nav-toggle-icon-open");
+  const navIconClose = navToggle?.querySelector(".app-nav-toggle-icon-close");
+
+  function isNarrowNav() {
+    return NAV_MQ.matches;
+  }
+
+  function syncNavToggleUi(open) {
+    if (!navToggle) return;
+    navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    navToggle.setAttribute(
+      "aria-label",
+      open ? "Cerrar menú de navegación" : "Abrir menú de navegación"
+    );
+    if (navIconOpen instanceof HTMLElement) {
+      navIconOpen.hidden = open;
+    }
+    if (navIconClose instanceof HTMLElement) {
+      navIconClose.hidden = !open;
+    }
+    if (navOverlay) {
+      navOverlay.hidden = !open;
+    }
+  }
+
+  function openNav() {
+    if (!isNarrowNav()) return;
+    document.body.classList.add("nav-open");
+    syncNavToggleUi(true);
+    const firstLink = navSidebar?.querySelector(".app-nav-link");
+    if (firstLink instanceof HTMLElement) {
+      firstLink.focus();
+    }
+  }
+
+  function closeNav() {
+    const wasOpen = document.body.classList.contains("nav-open");
+    document.body.classList.remove("nav-open");
+    syncNavToggleUi(false);
+    if (wasOpen && navToggle instanceof HTMLElement && isNarrowNav()) {
+      navToggle.focus();
+    }
+  }
+
+  function toggleNav() {
+    if (document.body.classList.contains("nav-open")) {
+      closeNav();
+    } else {
+      openNav();
+    }
+  }
+
   window.InventarioUi = {
     showLoading(withOverlay = false) {
       loadingBar?.classList.add("is-active");
@@ -206,8 +262,52 @@
       dialog?.close();
     },
     openModal,
-    closeModal
+    closeModal,
+    openNav,
+    closeNav,
+    toggleNav
   };
+
+  navToggle?.addEventListener("click", (e) => {
+    e.preventDefault();
+    toggleNav();
+  });
+
+  navOverlay?.addEventListener("click", () => {
+    closeNav();
+  });
+
+  document.querySelectorAll(".app-nav-link").forEach((link) => {
+    link.addEventListener("click", () => {
+      if (isNarrowNav()) {
+        closeNav();
+      }
+    });
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (!document.body.classList.contains("nav-open")) return;
+    if (document.querySelector("dialog.action-modal[open], dialog.confirm-dialog[open]")) {
+      return;
+    }
+    e.preventDefault();
+    closeNav();
+  });
+
+  function onNavViewportChange() {
+    if (!isNarrowNav()) {
+      closeNav();
+    }
+  }
+
+  if (typeof NAV_MQ.addEventListener === "function") {
+    NAV_MQ.addEventListener("change", onNavViewportChange);
+  } else if (typeof NAV_MQ.addListener === "function") {
+    NAV_MQ.addListener(onNavViewportChange);
+  }
+
+  syncNavToggleUi(false);
 
   document.querySelectorAll("[data-confirm-open]").forEach((el) => {
     el.addEventListener("click", (e) => {
