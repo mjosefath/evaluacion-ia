@@ -109,6 +109,7 @@
   --card-padding: 16px;
   --element-gap: 8px;
   --sidebar-width: 240px;
+  --sidebar-width-collapsed: 56px;
 
   /* Border Radius */
   --radius-lg: 8px;

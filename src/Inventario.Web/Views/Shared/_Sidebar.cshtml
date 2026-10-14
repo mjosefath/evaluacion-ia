@@ -4,14 +4,19 @@
 }
 
 <aside id="app-sidebar" class="app-sidebar" aria-label="Navegación principal">
-    <a class="app-brand" asp-controller="Home" asp-action="Index">Inventario</a>
+    <a class="app-brand" asp-controller="Home" asp-action="Index" title="Inventario">
+        <span class="app-brand-mark" aria-hidden="true">I</span>
+        <span class="app-brand-text">Inventario</span>
+    </a>
     <nav class="app-nav" aria-label="Menú">
         <a class="app-nav-link@(isInicio ? " is-active" : null)"
            asp-controller="Home"
            asp-action="Index"
+           title="Inicio"
+           aria-label="Inicio"
            aria-current="@(isInicio ? "page" : null)">
             <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-house"/></svg>
-            <span>Inicio</span>
+            <span class="app-nav-label">Inicio</span>
         </a>
     </nav>
 </aside>
