@@ -116,10 +116,15 @@ summary:focus-visible {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--spacing-12);
   padding: var(--spacing-16) var(--spacing-24);
   border-bottom: 1px solid var(--color-ash);
   background: var(--surface-canvas);
+}
+
+.app-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
 }
 
 .app-header-user {
@@ -261,6 +266,34 @@ summary:focus-visible {
   padding: var(--card-padding);
 }
 
+.card-form {
+  max-width: 420px;
+}
+
+/* —— Page / text helpers —— */
+.app-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+
+.text-muted {
+  margin: 0;
+  color: var(--color-fog);
+  font-size: var(--text-body);
+}
+
+.text-caption {
+  margin: 0;
+  color: var(--color-fog);
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+}
+
+.login-header {
+  margin-bottom: var(--spacing-8);
+}
+
 /* —— Alerts —— */
 .alerts {
   display: flex;
@@ -400,10 +433,14 @@ summary:focus-visible {
 }
 
 .login-subtitle {
-  margin: 0 0 var(--spacing-24);
+  margin: 0;
   color: var(--color-fog);
   text-align: center;
   font-size: var(--text-body);
+}
+
+.login-header + .login-form {
+  margin-top: var(--spacing-24);
 }
 
 .login-actions {

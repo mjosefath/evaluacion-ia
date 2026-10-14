@@ -4,10 +4,12 @@
     ViewData["Title"] = "Iniciar sesión";
 }
 
-<h1 class="login-brand">Inventario</h1>
-<p class="login-subtitle">Inicia sesión para continuar</p>
+<header class="login-header">
+    <h1 class="login-brand">Inventario</h1>
+    <p class="login-subtitle">Inicia sesión para continuar</p>
+</header>
 
-<form asp-controller="Account" asp-action="Login" method="post" novalidate>
+<form asp-controller="Account" asp-action="Login" method="post" class="login-form" novalidate>
     @Html.AntiForgeryToken()
     <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
 
@@ -39,6 +41,7 @@
         <button type="submit" class="btn btn-primary">Entrar</button>
     </div>
 </form>
+
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

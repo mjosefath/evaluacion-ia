@@ -6,15 +6,17 @@
 }
 
 <header class="app-header">
-    <span class="app-header-user" id="header-display-name">@displayName</span>
-    <details class="app-header-menu">
-        <summary class="btn btn-outline" aria-haspopup="menu">Cuenta</summary>
-        <div class="app-header-menu-panel" role="menu">
-            <a role="menuitem" asp-controller="Account" asp-action="ChangePassword">Cambiar contraseña</a>
-            <form asp-controller="Account" asp-action="Logout" method="post">
-                @Html.AntiForgeryToken()
-                <button type="submit" role="menuitem">Cerrar sesión</button>
-            </form>
-        </div>
-    </details>
+    <div class="app-header-actions">
+        <span class="app-header-user" id="header-display-name">@displayName</span>
+        <details class="app-header-menu">
+            <summary class="btn btn-outline" aria-haspopup="menu">Cuenta</summary>
+            <div class="app-header-menu-panel" role="menu">
+                <a role="menuitem" asp-controller="Account" asp-action="ChangePassword">Cambiar contraseña</a>
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" role="menuitem">Cerrar sesión</button>
+                </form>
+            </div>
+        </details>
+    </div>
 </header>
