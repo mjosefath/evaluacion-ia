@@ -1,37 +1,47 @@
+using Inventario.Application.Results;
+
 namespace Inventario.Application.Auth;
 
+/// <summary>
+/// Puente sobre <see cref="Result{T}"/> (análisis 03 / A1). Preferir Result&lt;T&gt; en código nuevo.
+/// Migración completa de AuthService/mappers → T03-06/07.
+/// </summary>
+[Obsolete("Usar Inventario.Application.Results.Result<T> con ErrorCodes (análisis 03).")]
 public sealed class AuthResult<T>
 {
-    private AuthResult(
-        bool isSuccess,
-        T? value,
-        AuthErrorCode errorCode,
-        string? errorMessage,
-        IReadOnlyDictionary<string, string[]>? fieldErrors)
+    private AuthResult(Result<T> inner)
     {
-        IsSuccess = isSuccess;
-        Value = value;
-        ErrorCode = errorCode;
-        ErrorMessage = errorMessage;
-        FieldErrors = fieldErrors;
+        Inner = inner;
     }
 
-    public bool IsSuccess { get; }
+    /// <summary>Resultado general subyacente.</summary>
+    public Result<T> Inner { get; }
 
-    public T? Value { get; }
+    public bool IsSuccess => Inner.IsSuccess;
 
-    public AuthErrorCode ErrorCode { get; }
+    public T? Value => Inner.Value;
 
-    public string? ErrorMessage { get; }
+    public AuthErrorCode ErrorCode => AuthErrorCodeMapper.FromErrorCode(Inner.Code);
 
-    public IReadOnlyDictionary<string, string[]>? FieldErrors { get; }
+    public string? ErrorMessage => Inner.Message;
+
+    public IReadOnlyDictionary<string, string[]>? FieldErrors => Inner.FieldErrors;
 
     public static AuthResult<T> Success(T value) =>
-        new(true, value, AuthErrorCode.None, null, null);
+        new(Result<T>.Success(value));
 
     public static AuthResult<T> Failure(
         AuthErrorCode errorCode,
         string? errorMessage = null,
-        IReadOnlyDictionary<string, string[]>? fieldErrors = null) =>
-        new(false, default, errorCode, errorMessage, fieldErrors);
+        IReadOnlyDictionary<string, string[]>? fieldErrors = null)
+    {
+        var code = AuthErrorCodeMapper.ToErrorCode(errorCode);
+        var message = string.IsNullOrWhiteSpace(errorMessage)
+            ? AuthErrorCodeMapper.DefaultMessage(errorCode)
+            : errorMessage;
+
+        return new AuthResult<T>(Result<T>.Failure(code, message, fieldErrors));
+    }
+
+    public static AuthResult<T> FromResult(Result<T> result) => new(result);
 }

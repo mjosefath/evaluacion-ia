@@ -1,9 +1,10 @@
 namespace Inventario.Contracts.Errors;
 
 /// <summary>
-/// Forma esperada de 400 con errors por campo (extensión habitual de ProblemDetails / RFC 7807).
-/// ASP.NET puede emitir esta forma; el ApiClient/Web la deserializa sin referenciar MVC.
+/// Obsoleto: usar <see cref="ApiProblem"/> (análisis 03, E3).
+/// Se mantiene temporalmente por compatibilidad de deserialización.
 /// </summary>
+[Obsolete("Usar Inventario.Contracts.Errors.ApiProblem (análisis 03 / E3).")]
 public sealed class ValidationProblemDetailsDto
 {
     public string? Type { get; init; }

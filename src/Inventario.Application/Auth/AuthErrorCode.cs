@@ -1,8 +1,9 @@
 namespace Inventario.Application.Auth;
 
 /// <summary>
-/// Códigos de fallo para que la Api mapee a HTTP (ADR-002).
+/// Códigos legacy de auth (ADR-002). Preferir <see cref="Results.ErrorCodes"/>.
 /// </summary>
+[Obsolete("Usar Inventario.Application.Results.ErrorCodes (análisis 03 / E2).")]
 public enum AuthErrorCode
 {
     None = 0,

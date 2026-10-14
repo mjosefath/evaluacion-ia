@@ -204,7 +204,7 @@ public sealed class AccountController(
 
         try
         {
-            var problem = JsonSerializer.Deserialize<ValidationProblemDetailsDto>(
+            var problem = JsonSerializer.Deserialize<ApiProblem>(
                 ex.ResponseBody,
                 ApiErrorJsonOptions);
 
