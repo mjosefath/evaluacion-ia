@@ -1,4 +1,6 @@
 using System.Text;
+using Inventario.Api.Hosting;
+using Inventario.Api.Options;
 using Inventario.Application;
 using Inventario.Application.Options;
 using Inventario.Data.Identity;
@@ -56,6 +58,7 @@ try
         .AddDefaultTokenProviders();
 
     builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+    builder.Services.Configure<SeedAdminOptions>(builder.Configuration.GetSection(SeedAdminOptions.SectionName));
     builder.Services.AddInventarioApplication();
 
     builder.Services
@@ -99,6 +102,13 @@ try
 
     var app = builder.Build();
 
+    // R10: seeder admin solo Development (password vía user-secrets/env, nunca en repo).
+    if (app.Environment.IsDevelopment())
+    {
+        await DevelopmentAdminSeeder.EnsureAdminAsync(app.Services);
+        app.MapOpenApi();
+    }
+
     app.UseSerilogRequestLogging(options =>
     {
         // Mensaje por defecto: método, path, status, elapsed — sin headers sensibles.
@@ -108,11 +118,6 @@ try
                 ? Serilog.Events.LogEventLevel.Information
                 : Serilog.Events.LogEventLevel.Error;
     });
-
-    if (app.Environment.IsDevelopment())
-    {
-        app.MapOpenApi();
-    }
 
     app.UseExceptionHandler();
     app.UseStatusCodePages();
