@@ -137,9 +137,8 @@
   --surface-card: #ffffff;
   --surface-tinted-accent: #dcfce7;
 
-  /* --- compat T02-02: nombres viejos → tokens Dub (site.css aún los usa) --- */
-  /* canvas viejo = fondo página gris → paper-mist; paper viejo = tarjeta → canvas-white */
-  --color-canvas: var(--color-paper-mist);
+  /* --- compat T02-02: aliases inofensivos (site.css ya usa tokens Dub) --- */
+  --color-canvas: var(--color-canvas-white);
   --color-paper: var(--color-canvas-white);
   --color-surface-alt: var(--color-paper-mist);
   --color-ink: var(--color-midnight-ink);
