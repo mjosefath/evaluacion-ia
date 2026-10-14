@@ -17,6 +17,7 @@
     {
         <div class="alerts">
             <div class="alert alert-error" role="alert">
+                @await Html.PartialAsync("_AlertIcon", "error")
                 <div class="alert-content">@Model.ErrorMessage</div>
             </div>
         </div>

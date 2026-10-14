@@ -10,18 +10,21 @@
         @if (!string.IsNullOrWhiteSpace(success))
         {
             <div class="alert alert-success">
+                @await Html.PartialAsync("_AlertIcon", "success")
                 <div class="alert-content">@success</div>
             </div>
         }
         @if (!string.IsNullOrWhiteSpace(info))
         {
             <div class="alert alert-info">
+                @await Html.PartialAsync("_AlertIcon", "info")
                 <div class="alert-content">@info</div>
             </div>
         }
         @if (!string.IsNullOrWhiteSpace(error))
         {
             <div class="alert alert-error" role="alert">
+                @await Html.PartialAsync("_AlertIcon", "error")
                 <div class="alert-content">@error</div>
             </div>
         }

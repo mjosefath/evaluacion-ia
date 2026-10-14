@@ -7,8 +7,9 @@
     <h1 id="page-title" class="app-page-title">Error</h1>
     <div class="alerts">
         <div class="alert alert-error" role="alert">
+            @await Html.PartialAsync("_AlertIcon", "error")
             <div class="alert-content">
-                <p class="text-muted">Ha ocurrido un problema al procesar la solicitud.</p>
+                <p>Ha ocurrido un problema al procesar la solicitud.</p>
                 @if (Model?.ShowRequestId == true)
                 {
                     <p class="text-caption">Request ID: @Model.RequestId</p>

@@ -382,7 +382,7 @@ span.form-error:empty {
 .alert {
   display: flex;
   align-items: flex-start;
-  gap: var(--spacing-8);
+  gap: var(--spacing-12);
   padding: var(--spacing-12) var(--spacing-16);
   border-radius: var(--radius-cards);
   border: 1px solid var(--color-ash);
@@ -390,6 +390,14 @@ span.form-error:empty {
   color: var(--color-charcoal);
   font-size: var(--text-body);
   line-height: var(--leading-body);
+}
+
+.alert-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.1em;
+  flex-shrink: 0;
+  color: inherit;
 }
 
 .alert-content {
@@ -405,9 +413,22 @@ span.form-error:empty {
   margin-bottom: 0;
 }
 
-.alert-error .alert-content .text-muted,
+.alert-content p {
+  margin: 0;
+}
+
+.alert-content p + p {
+  margin-top: var(--spacing-4);
+}
+
+.alert-error .alert-content,
 .alert-error .alert-content .text-caption {
   color: inherit;
+}
+
+/* Summary del modal: mismo tono que alert-error; campos siguen en .form-error */
+.action-modal-form .validation-summary-errors:not(:empty) {
+  margin-bottom: var(--spacing-16);
 }
 
 .alert-success {
