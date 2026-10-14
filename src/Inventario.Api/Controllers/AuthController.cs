@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Inventario.Api.Http;
 using Inventario.Application.Auth;
 using Inventario.Application.Results;
 using Inventario.Contracts.Auth;
@@ -29,7 +30,7 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
             GetUserAgent(),
             cancellationToken);
 
-        return Map(result);
+        return ResultHttpMapper.ToActionResult(this, result);
     }
 
     [AllowAnonymous]
@@ -48,7 +49,7 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
             GetUserAgent(),
             cancellationToken);
 
-        return Map(result);
+        return ResultHttpMapper.ToActionResult(this, result);
     }
 
     [Authorize]
@@ -67,7 +68,7 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
             GetUserAgent(),
             cancellationToken);
 
-        return Map(result);
+        return ResultHttpMapper.ToActionResult(this, result);
     }
 
     [Authorize]
@@ -88,7 +89,7 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
             GetUserAgent(),
             cancellationToken);
 
-        return Map(result);
+        return ResultHttpMapper.ToActionResult(this, result);
     }
 
     [Authorize]
@@ -100,16 +101,8 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     public async Task<IActionResult> Me(CancellationToken cancellationToken)
     {
         var result = await authService.MeAsync(GetUserId(), cancellationToken);
-        return Map(result);
+        return ResultHttpMapper.ToActionResult(this, result);
     }
-
-    /// <summary>
-    /// Bridge temporal a AuthResultHttpMapper (T03-07 → ApiProblem / Result mapper).
-    /// </summary>
-#pragma warning disable CS0618 // AuthResult puente hasta T03-07
-    private IActionResult Map<T>(Result<T> result) =>
-        AuthResultHttpMapper.ToActionResult(this, AuthResult<T>.FromResult(result));
-#pragma warning restore CS0618
 
     private string GetUserId() =>
         User.FindFirstValue(ClaimTypes.NameIdentifier)

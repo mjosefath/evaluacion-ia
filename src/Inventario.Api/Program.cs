@@ -1,12 +1,15 @@
 using System.Text;
 using Inventario.Api.Hosting;
+using Inventario.Api.Http;
 using Inventario.Api.Options;
 using Inventario.Application;
 using Inventario.Application.Options;
+using Inventario.Application.Results;
 using Inventario.Data.Identity;
 using Inventario.Data.System;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -96,8 +99,37 @@ try
             });
 
     builder.Services.AddAuthorization();
+    builder.Services.AddExceptionHandler<ApiProblemExceptionHandler>();
     builder.Services.AddProblemDetails();
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .ConfigureApiBehaviorOptions(options =>
+        {
+            // ModelState inválido → ApiProblem validation (E3/E5), no ValidationProblemDetails suelto.
+            options.InvalidModelStateResponseFactory = context =>
+            {
+                var errors = context.ModelState
+                    .Where(entry => entry.Value is { Errors.Count: > 0 })
+                    .ToDictionary(
+                        entry => ToCamelCaseKey(entry.Key),
+                        entry => entry.Value!.Errors
+                            .Select(e => string.IsNullOrWhiteSpace(e.ErrorMessage)
+                                ? MessageCatalog.ValidationFailed
+                                : e.ErrorMessage)
+                            .ToArray(),
+                        StringComparer.Ordinal);
+
+                if (errors.Count == 0)
+                {
+                    errors = new Dictionary<string, string[]>(StringComparer.Ordinal)
+                    {
+                        [string.Empty] = [MessageCatalog.ValidationFailed]
+                    };
+                }
+
+                var problem = ApiProblemFactory.Validation(context.HttpContext, errors);
+                return new ObjectResult(problem) { StatusCode = problem.Status };
+            };
+        });
     builder.Services.AddOpenApi();
 
     var app = builder.Build();
@@ -137,4 +169,27 @@ catch (Exception ex) when (ex is not HostAbortedException)
 finally
 {
     Log.CloseAndFlush();
+}
+
+static string ToCamelCaseKey(string key)
+{
+    if (string.IsNullOrEmpty(key))
+    {
+        return string.Empty;
+    }
+
+    // ModelState puede traer rutas "NewPassword" o "request.UserName".
+    var parts = key.Split('.');
+    for (var i = 0; i < parts.Length; i++)
+    {
+        var p = parts[i];
+        if (p.Length == 0)
+        {
+            continue;
+        }
+
+        parts[i] = char.ToLowerInvariant(p[0]) + p[1..];
+    }
+
+    return string.Join('.', parts);
 }

@@ -11,9 +11,11 @@ El análisis 03 unifica errores/avisos/validaciones. ADR-002 limitaba el patrón
 | Resultado de casos de uso | `Result` / `Result<T>` en Application (`Code`, `Message`, `FieldErrors`, `Rule`, `Warnings` W10). |
 | Códigos | Constantes string en `ErrorCodes` / `BusinessRuleCodes` (E2); no enums como contrato. |
 | Respuesta HTTP de error | `ApiProblem` en Contracts (E3): type, title ES, status, detail, code, rule?, errors?, traceId. |
-| Auth legacy | `AuthResult<T>` envuelve `Result<T>`; `AuthErrorCode` mapea vía `AuthErrorCodeMapper` hasta T03-06/07. |
+| Mapeo HTTP | `ResultHttpMapper` + `ApiProblemFactory` (E5); titles ES, `code`, `traceId`. |
+| 500 / ModelState | `ApiProblemExceptionHandler`; `InvalidModelStateResponseFactory` → `code=validation`. |
 | Mensajes | `MessageCatalog` en Application (M2); la Web no reescribe. |
 | ValidationProblemDetailsDto | Obsoleto; fuente de verdad = `ApiProblem`. |
+| AuthResult legacy | Eliminado tras T03-06/07; auth usa solo `Result` / `ErrorCodes`. |
 
 ## Alternativas descartadas
 
