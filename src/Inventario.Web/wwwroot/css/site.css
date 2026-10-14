@@ -391,6 +391,10 @@ summary:focus-visible {
   display: none;
 }
 
+.action-modal-form .form-field:last-child {
+  margin-bottom: 0;
+}
+
 .action-modal-footer {
   display: flex;
   justify-content: flex-end;

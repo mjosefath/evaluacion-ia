@@ -11,7 +11,10 @@
         <details class="app-header-menu">
             <summary class="btn btn-outline" aria-haspopup="menu">Cuenta</summary>
             <div class="app-header-menu-panel" role="menu">
-                <a role="menuitem" asp-controller="Account" asp-action="ChangePassword">Cambiar contraseña</a>
+                <a role="menuitem"
+                   href="#"
+                   data-modal-open="app-action-modal"
+                   data-modal-title="Cambiar contraseña">Cambiar contraseña</a>
                 <form asp-controller="Account" asp-action="Logout" method="post">
                     @Html.AntiForgeryToken()
                     <button type="submit" role="menuitem">Cerrar sesión</button>

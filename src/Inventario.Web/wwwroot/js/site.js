@@ -10,6 +10,7 @@
   /**
    * Backdrop del action-modal: no cierra al clic (evita perder datos del formulario).
    * Cierre: Esc (nativo), data-modal-close / Cancelar, o InventarioUi.closeModal.
+   * ChangePassword (T03-02): submit AJAX → partial HTML con errores o JSON { redirectUrl }.
    */
 
   function resolveActionModal(idOrElement) {
@@ -36,6 +37,25 @@
     });
   }
 
+  function focusModal(dialog) {
+    const focusables = focusableIn(dialog);
+    const preferred =
+      dialog.querySelector("[data-modal-initial-focus]") || focusables[0] || dialog;
+    if (preferred instanceof HTMLElement) {
+      preferred.focus();
+    }
+  }
+
+  function parseUnobtrusive(form) {
+    if (!form || !window.jQuery) return;
+    const $ = window.jQuery;
+    if ($.validator && $.validator.unobtrusive) {
+      $(form).removeData("validator");
+      $(form).removeData("unobtrusiveValidation");
+      $.validator.unobtrusive.parse(form);
+    }
+  }
+
   function openModal(idOrElement, options = {}) {
     const dialog = resolveActionModal(idOrElement);
     if (!dialog || typeof dialog.showModal !== "function") {
@@ -57,12 +77,7 @@
       dialog.showModal();
     }
 
-    const focusables = focusableIn(dialog);
-    const preferred =
-      dialog.querySelector("[data-modal-initial-focus]") || focusables[0] || dialog;
-    if (preferred instanceof HTMLElement) {
-      preferred.focus();
-    }
+    focusModal(dialog);
   }
 
   function closeModal(idOrElement) {
@@ -72,17 +87,100 @@
     }
   }
 
+  function resetChangePasswordForm(dialog) {
+    const form = dialog?.querySelector("#change-password-form");
+    if (!(form instanceof HTMLFormElement)) return;
+    form.reset();
+    form.querySelectorAll(".form-error").forEach((el) => {
+      el.textContent = "";
+    });
+    form.querySelectorAll(".input-validation-error").forEach((el) => {
+      el.classList.remove("input-validation-error");
+    });
+  }
+
   function onActionModalClosed(dialog) {
     const cb = modalOnClose;
     modalOnClose = null;
     try {
       cb?.();
+      resetChangePasswordForm(dialog);
     } finally {
       const trigger = modalTrigger;
       modalTrigger = null;
       if (trigger && typeof trigger.focus === "function" && document.contains(trigger)) {
         trigger.focus();
       }
+    }
+  }
+
+  async function submitModalAjaxForm(form) {
+    const dialog = form.closest("dialog.action-modal");
+    window.InventarioUi.showLoading(true);
+
+    try {
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          Accept: "application/json, text/html"
+        },
+        credentials: "same-origin"
+      });
+
+      const contentType = response.headers.get("content-type") || "";
+
+      if (contentType.includes("application/json")) {
+        const data = await response.json();
+        if (data && typeof data.redirectUrl === "string" && data.redirectUrl) {
+          window.location.assign(data.redirectUrl);
+          return;
+        }
+      }
+
+      if (contentType.includes("text/html")) {
+        const html = await response.text();
+        const body = dialog?.querySelector("[data-modal-body]");
+        if (body) {
+          body.innerHTML = html;
+          const newForm = body.querySelector("form");
+          parseUnobtrusive(newForm);
+        }
+        if (dialog && !dialog.open) {
+          openModal(dialog);
+        } else if (dialog) {
+          focusModal(dialog);
+        }
+        return;
+      }
+
+      if (!response.ok) {
+        const body = dialog?.querySelector("[data-modal-body]");
+        if (body && !body.querySelector(".form-error[data-modal-generic-error]")) {
+          const p = document.createElement("p");
+          p.className = "form-error";
+          p.dataset.modalGenericError = "true";
+          p.setAttribute("role", "alert");
+          p.textContent = "No se pudo completar la acción. Intenta de nuevo.";
+          body.prepend(p);
+        }
+      }
+    } catch {
+      const body = dialog?.querySelector("[data-modal-body]");
+      if (body) {
+        let alert = body.querySelector("[data-modal-generic-error]");
+        if (!alert) {
+          alert = document.createElement("p");
+          alert.className = "form-error";
+          alert.dataset.modalGenericError = "true";
+          alert.setAttribute("role", "alert");
+          body.prepend(alert);
+        }
+        alert.textContent = "No se pudo completar la acción. Intenta de nuevo.";
+      }
+    } finally {
+      window.InventarioUi.hideLoading();
     }
   }
 
@@ -125,7 +223,12 @@
     const openEl = target.closest("[data-modal-open]");
     if (openEl) {
       e.preventDefault();
-      openModal(openEl.getAttribute("data-modal-open"));
+      const menu = openEl.closest("details.app-header-menu");
+      if (menu) {
+        menu.open = false;
+      }
+      const title = openEl.getAttribute("data-modal-title") || undefined;
+      openModal(openEl.getAttribute("data-modal-open"), title ? { title } : {});
       return;
     }
 
@@ -137,6 +240,14 @@
         closeModal(dialog);
       }
     }
+  });
+
+  document.addEventListener("submit", (e) => {
+    const form = e.target;
+    if (!(form instanceof HTMLFormElement)) return;
+    if (!form.hasAttribute("data-modal-ajax-form")) return;
+    e.preventDefault();
+    void submitModalAjaxForm(form);
   });
 
   document.addEventListener(
@@ -173,4 +284,9 @@
       first.focus();
     }
   });
+
+  const initialForm = document.getElementById("change-password-form");
+  if (initialForm) {
+    parseUnobtrusive(initialForm);
+  }
 })();

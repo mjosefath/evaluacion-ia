@@ -85,13 +85,18 @@ public sealed class AccountController(
         }
     }
 
+    /// <summary>
+    /// La UI de cambio de contraseña vive en el action-modal (T03-02). GET ya no sirve página.
+    /// </summary>
     [HttpGet]
     [Authorize]
-    public IActionResult ChangePassword()
-    {
-        return View(new ChangePasswordViewModel());
-    }
+    public IActionResult ChangePassword() =>
+        RedirectToAction(nameof(HomeController.Index), "Home");
 
+    /// <summary>
+    /// POST del modal: AJAX (X-Requested-With) → partial HTML con errores o JSON { redirectUrl }.
+    /// Éxito: SignOut + redirect a Login (mismo comportamiento que la página antigua).
+    /// </summary>
     [HttpPost]
     [Authorize]
     [ValidateAntiForgeryToken]
@@ -101,7 +106,7 @@ public sealed class AccountController(
     {
         if (!ModelState.IsValid)
         {
-            return View(model);
+            return ChangePasswordFormResult(model, statusCode: 400);
         }
 
         try
@@ -113,24 +118,51 @@ public sealed class AccountController(
             // ApiClient.ClearAsync ya limpia la cookie; reforzamos SignOut local.
             await authSession.SignOutAsync(cancellationToken);
             TempData["Success"] = "Contraseña actualizada. Inicia sesión de nuevo.";
+
+            if (IsModalAjaxRequest())
+            {
+                return Json(new { redirectUrl = Url.Action(nameof(Login)) });
+            }
+
             return RedirectToAction(nameof(Login));
         }
         catch (InventarioApiException ex) when (ex.StatusCode == 400)
         {
             ApplyChangePasswordApiErrors(ex);
-            return View(model);
+            return ChangePasswordFormResult(model, statusCode: 400);
         }
         catch (InventarioApiException ex) when (ex.StatusCode is 401 or 403)
         {
             await authSession.SignOutAsync(cancellationToken);
             TempData["Error"] = "Tu sesión no es válida. Inicia sesión de nuevo.";
+
+            if (IsModalAjaxRequest())
+            {
+                return Json(new
+                {
+                    redirectUrl = Url.Action(nameof(Login), new { sessionExpired = true })
+                });
+            }
+
             return RedirectToAction(nameof(Login), new { sessionExpired = true });
         }
         catch (InventarioApiException)
         {
             ModelState.AddModelError(string.Empty, "No se pudo cambiar la contraseña. Intenta de nuevo.");
-            return View(model);
+            return ChangePasswordFormResult(model, statusCode: 400);
         }
+    }
+
+    private bool IsModalAjaxRequest() =>
+        string.Equals(
+            Request.Headers.XRequestedWith.ToString(),
+            "XMLHttpRequest",
+            StringComparison.OrdinalIgnoreCase);
+
+    private IActionResult ChangePasswordFormResult(ChangePasswordViewModel model, int statusCode)
+    {
+        Response.StatusCode = statusCode;
+        return PartialView("~/Views/Account/_ChangePasswordForm.cshtml", model);
     }
 
     [HttpPost]
