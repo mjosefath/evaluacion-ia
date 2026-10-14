@@ -321,18 +321,23 @@ summary:focus-visible {
   border-color: var(--color-danger);
 }
 
-/* —— Confirm dialog —— */
-.confirm-dialog {
+/* —— Dialogs (confirm + action modal; Dub border-first) —— */
+.ui-dialog {
   border: 1px solid var(--color-ash);
   border-radius: var(--radius-cards);
   background: var(--surface-card);
-  padding: var(--spacing-24);
+  color: var(--color-charcoal);
   max-width: 420px;
   width: calc(100% - var(--spacing-48));
+  padding: 0;
 }
 
-.confirm-dialog::backdrop {
+.ui-dialog::backdrop {
   background: rgba(10, 10, 10, 0.35);
+}
+
+.confirm-dialog {
+  padding: var(--spacing-24);
 }
 
 .confirm-dialog h2 {
@@ -352,6 +357,47 @@ summary:focus-visible {
   display: flex;
   justify-content: flex-end;
   gap: var(--element-gap);
+}
+
+.action-modal {
+  max-width: 480px;
+}
+
+.action-modal-frame {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.action-modal-header {
+  padding: var(--spacing-20) var(--spacing-24) var(--spacing-12);
+}
+
+.action-modal-title {
+  margin: 0;
+  font-size: var(--text-subheading);
+  line-height: var(--leading-subheading);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-charcoal);
+}
+
+.action-modal-body {
+  padding: 0 var(--spacing-24) var(--spacing-16);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.action-modal-body:empty {
+  display: none;
+}
+
+.action-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--element-gap);
+  padding: var(--spacing-12) var(--spacing-24) var(--spacing-20);
+  border-top: 1px solid var(--color-ash);
 }
 
 /* —— Loading —— */
