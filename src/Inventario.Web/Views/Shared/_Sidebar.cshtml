@@ -1,14 +1,12 @@
 @{
-    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
-    var isInicio = string.Equals(currentController, "Home", StringComparison.OrdinalIgnoreCase)
-                   && string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
+    // Activo solo por ruta (Home/Index). El modal de ChangePassword no navega → no altera el activo.
+    var isInicio = NavActive.IsMatch(ViewContext, "Home", "Index");
 }
 
 <aside class="app-sidebar" aria-label="Navegación principal">
     <a class="app-brand" asp-controller="Home" asp-action="Index">Inventario</a>
     <nav class="app-nav" aria-label="Menú">
-        <a class="app-nav-link @(isInicio ? "is-active" : null)"
+        <a class="app-nav-link@(isInicio ? " is-active" : null)"
            asp-controller="Home"
            asp-action="Index"
            aria-current="@(isInicio ? "page" : null)">
