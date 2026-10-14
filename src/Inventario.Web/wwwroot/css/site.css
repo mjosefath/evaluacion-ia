@@ -277,10 +277,62 @@ summary:focus-visible {
   box-shadow: var(--shadow-subtle-2);
 }
 
-.form-error {
+.form-input.input-validation-error,
+.form-input.is-invalid {
+  border-color: var(--color-danger);
+  background: var(--color-canvas-white);
+}
+
+.form-input.input-validation-error:focus,
+.form-input.is-invalid:focus {
+  outline: none;
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 18%, transparent);
+}
+
+/* Mensajes de campo / summary (unobtrusive + .form-error) */
+.form-error,
+.field-validation-error {
+  display: block;
+  margin: 0;
   color: var(--color-danger);
   font-size: var(--text-caption);
   line-height: var(--leading-caption);
+  font-weight: var(--font-weight-regular);
+}
+
+.field-validation-valid,
+.field-validation-valid:empty,
+.field-validation-error:empty,
+span.form-error:empty {
+  display: none;
+}
+
+.validation-summary-valid {
+  display: none;
+}
+
+.validation-summary-errors,
+.validation-summary-errors.form-error {
+  display: block;
+  margin: 0 0 var(--spacing-16);
+  padding: var(--spacing-12) var(--spacing-16);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-cards);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+}
+
+.validation-summary-errors ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.validation-summary-errors li + li {
+  margin-top: var(--spacing-4);
 }
 
 /* —— Cards —— */
@@ -319,7 +371,7 @@ summary:focus-visible {
   margin-bottom: var(--spacing-8);
 }
 
-/* —— Alerts —— */
+/* —— Alerts (Dub border-first; tints suaves, sin sombra) —— */
 .alerts {
   display: flex;
   flex-direction: column;
@@ -334,16 +386,25 @@ summary:focus-visible {
   background: var(--surface-card);
   color: var(--color-charcoal);
   font-size: var(--text-body);
+  line-height: var(--leading-body);
 }
 
-.alert-info,
 .alert-success {
+  background: var(--surface-tinted-accent);
+  border-color: var(--color-ash);
+  color: var(--color-charcoal);
+}
+
+.alert-info {
+  background: var(--color-info-soft);
+  border-color: var(--color-ash);
   color: var(--color-charcoal);
 }
 
 .alert-error {
-  color: var(--color-danger);
+  background: var(--color-danger-soft);
   border-color: var(--color-danger);
+  color: var(--color-danger);
 }
 
 /* —— Dialogs (confirm + action modal; Dub border-first) —— */
