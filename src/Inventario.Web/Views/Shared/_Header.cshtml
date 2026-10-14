@@ -9,15 +9,24 @@
     <div class="app-header-actions">
         <span class="app-header-user" id="header-display-name">@displayName</span>
         <details class="app-header-menu">
-            <summary class="btn btn-outline" aria-haspopup="menu">Cuenta</summary>
+            <summary class="btn btn-outline" aria-haspopup="menu">
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-circle-user"/></svg>
+                <span>Cuenta</span>
+            </summary>
             <div class="app-header-menu-panel" role="menu">
                 <a role="menuitem"
                    href="#"
                    data-modal-open="app-action-modal"
-                   data-modal-title="Cambiar contraseña">Cambiar contraseña</a>
+                   data-modal-title="Cambiar contraseña">
+                    <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-lock"/></svg>
+                    <span>Cambiar contraseña</span>
+                </a>
                 <form asp-controller="Account" asp-action="Logout" method="post">
                     @Html.AntiForgeryToken()
-                    <button type="submit" role="menuitem">Cerrar sesión</button>
+                    <button type="submit" role="menuitem">
+                        <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-log-out"/></svg>
+                        <span>Cerrar sesión</span>
+                    </button>
                 </form>
             </div>
         </details>

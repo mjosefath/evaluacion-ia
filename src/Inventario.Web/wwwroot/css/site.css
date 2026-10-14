@@ -91,13 +91,32 @@ summary:focus-visible {
 }
 
 .app-nav-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
   padding: var(--spacing-12) var(--spacing-8);
   border-radius: var(--radius-buttons);
   border: 1px solid transparent;
   color: var(--color-steel);
   font-weight: var(--font-weight-medium);
   font-size: var(--text-body);
+}
+
+/* Lucide subset — color vía currentColor */
+.lucide-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  display: block;
+  stroke: currentColor;
+  fill: none;
 }
 
 .app-nav-link:hover {
@@ -161,7 +180,9 @@ summary:focus-visible {
 
 .app-header-menu-panel a,
 .app-header-menu-panel button {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
   width: 100%;
   text-align: left;
   padding: var(--spacing-8) var(--spacing-12);
@@ -171,6 +192,10 @@ summary:focus-visible {
   font: inherit;
   color: var(--color-charcoal);
   cursor: pointer;
+}
+
+.app-header-menu summary.btn {
+  gap: var(--spacing-8);
 }
 
 .app-header-menu-panel a:hover,
