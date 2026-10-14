@@ -1,22 +1,25 @@
+using Inventario.ApiClient.Errors;
+
 namespace Inventario.ApiClient.Auth;
 
 /// <summary>
-/// Fallo HTTP del ApiClient. No incluye tokens ni contraseñas en el mensaje.
+/// Fallo HTTP del ApiClient con <see cref="ApiError"/> tipado. No incluye tokens ni contraseñas.
 /// </summary>
 public sealed class InventarioApiException : Exception
 {
-    public InventarioApiException(int statusCode, string message, string? responseBody = null)
-        : base(message)
+    public InventarioApiException(ApiError error)
+        : base(error.Detail ?? $"La API respondió {error.Status}.")
     {
-        StatusCode = statusCode;
-        ResponseBody = responseBody;
+        Error = error;
     }
 
-    public int StatusCode { get; }
+    public ApiError Error { get; }
 
-    /// <summary>Cuerpo crudo (ProblemDetails). No debe usarse para logging de secretos.</summary>
-    public string? ResponseBody { get; }
+    public int StatusCode => Error.Status;
 
-    /// <summary>True si el refresh silencioso falló o la sesión quedó inválida.</summary>
-    public bool IsUnauthorized => StatusCode is 401 or 403;
+    /// <summary>Sin sesión / token inválido (solo 401). No incluye 403.</summary>
+    public bool IsUnauthorized => StatusCode == 401;
+
+    /// <summary>Sesión válida sin permiso (solo 403).</summary>
+    public bool IsForbidden => StatusCode == 403;
 }

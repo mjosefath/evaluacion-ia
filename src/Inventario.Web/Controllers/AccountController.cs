@@ -1,7 +1,5 @@
-using System.Text.Json;
 using Inventario.ApiClient.Auth;
 using Inventario.Contracts.Auth;
-using Inventario.Contracts.Errors;
 using Inventario.Web.Auth;
 using Inventario.Web.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -59,7 +57,7 @@ public sealed class AccountController(
 
             return RedirectToLocal(returnUrl);
         }
-        catch (InventarioApiException ex) when (ex.StatusCode == 401)
+        catch (InventarioApiException ex) when (ex.IsUnauthorized)
         {
             await authSession.SignOutAsync(cancellationToken);
             model.ErrorMessage = "Credenciales inválidas.";
@@ -71,7 +69,7 @@ public sealed class AccountController(
             model.ErrorMessage = "Cuenta bloqueada temporalmente. Intenta más tarde.";
             return View(model);
         }
-        catch (InventarioApiException ex) when (ex.StatusCode == 403)
+        catch (InventarioApiException ex) when (ex.IsForbidden)
         {
             await authSession.SignOutAsync(cancellationToken);
             model.ErrorMessage = "Perfil inactivo. Contacta al administrador.";
@@ -131,7 +129,7 @@ public sealed class AccountController(
             ApplyChangePasswordApiErrors(ex);
             return ChangePasswordFormResult(model, statusCode: 400);
         }
-        catch (InventarioApiException ex) when (ex.StatusCode is 401 or 403)
+        catch (InventarioApiException ex) when (ex.IsUnauthorized)
         {
             await authSession.SignOutAsync(cancellationToken);
             TempData["Error"] = "Tu sesión no es válida. Inicia sesión de nuevo.";
@@ -145,6 +143,14 @@ public sealed class AccountController(
             }
 
             return RedirectToAction(nameof(Login), new { sessionExpired = true });
+        }
+        catch (InventarioApiException ex) when (ex.IsForbidden)
+        {
+            // A5: 403 ≠ sesión vencida; W1 AccessDenied llega en T03-09.
+            ModelState.AddModelError(
+                string.Empty,
+                ex.Error.Detail ?? "No tienes permiso para esta acción.");
+            return ChangePasswordFormResult(model, statusCode: 403);
         }
         catch (InventarioApiException)
         {
@@ -196,40 +202,25 @@ public sealed class AccountController(
 
     private void ApplyChangePasswordApiErrors(InventarioApiException ex)
     {
-        if (string.IsNullOrWhiteSpace(ex.ResponseBody))
+        var error = ex.Error;
+
+        if (error.Errors is { Count: > 0 })
         {
-            ModelState.AddModelError(string.Empty, "No se pudo cambiar la contraseña.");
+            foreach (var (key, messages) in error.Errors)
+            {
+                var field = MapChangePasswordField(key);
+                foreach (var message in messages)
+                {
+                    ModelState.AddModelError(field, message);
+                }
+            }
+
             return;
         }
 
-        try
-        {
-            var problem = JsonSerializer.Deserialize<ApiProblem>(
-                ex.ResponseBody,
-                ApiErrorJsonOptions);
-
-            if (problem?.Errors is { Count: > 0 })
-            {
-                foreach (var (key, messages) in problem.Errors)
-                {
-                    var field = MapChangePasswordField(key);
-                    foreach (var message in messages)
-                    {
-                        ModelState.AddModelError(field, message);
-                    }
-                }
-
-                return;
-            }
-
-            ModelState.AddModelError(
-                string.Empty,
-                problem?.Detail ?? problem?.Title ?? "No se pudo cambiar la contraseña.");
-        }
-        catch (JsonException)
-        {
-            ModelState.AddModelError(string.Empty, "No se pudo cambiar la contraseña.");
-        }
+        ModelState.AddModelError(
+            string.Empty,
+            error.Detail ?? error.Title ?? "No se pudo cambiar la contraseña.");
     }
 
     private static string MapChangePasswordField(string apiKey) =>
@@ -240,9 +231,4 @@ public sealed class AccountController(
             "confirmpassword" => nameof(ChangePasswordViewModel.ConfirmPassword),
             _ => string.Empty
         };
-
-    private static readonly JsonSerializerOptions ApiErrorJsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
 }

@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Inventario.ApiClient.Errors;
 using Inventario.Contracts.Auth;
 
 namespace Inventario.ApiClient.Auth;
@@ -81,9 +82,12 @@ public sealed class InventarioAuthApi(HttpClient httpClient, IAuthTokenStore tok
         var value = await response.Content.ReadFromJsonAsync<T>(InventarioJson.Options, cancellationToken);
         if (value is null)
         {
-            throw new InventarioApiException(
-                (int)response.StatusCode,
-                "La API devolvió una respuesta vacía o inválida.");
+            throw new InventarioApiException(new ApiError
+            {
+                Status = (int)response.StatusCode,
+                Code = "unexpected",
+                Detail = "La API devolvió una respuesta vacía o inválida."
+            });
         }
 
         return value;
@@ -98,11 +102,8 @@ public sealed class InventarioAuthApi(HttpClient httpClient, IAuthTokenStore tok
             return;
         }
 
-        // No se registra el cuerpo: puede contener detalles; la Web decide qué mostrar.
-        var body = await response.Content.ReadAsStringAsync(cancellationToken);
-        throw new InventarioApiException(
-            (int)response.StatusCode,
-            $"La API respondió {(int)response.StatusCode}.",
-            body);
+        // No se registra el cuerpo: la Web usa ApiError tipado.
+        var error = await ApiError.FromHttpResponseAsync(response, cancellationToken);
+        throw new InventarioApiException(error);
     }
 }

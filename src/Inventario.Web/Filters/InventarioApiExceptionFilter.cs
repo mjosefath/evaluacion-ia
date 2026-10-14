@@ -12,7 +12,8 @@ public sealed class InventarioApiExceptionFilter(AuthSessionService authSession)
 {
     public async Task OnExceptionAsync(ExceptionContext context)
     {
-        if (context.Exception is not InventarioApiException { StatusCode: 401 })
+        // Solo 401 (sesión): IsUnauthorized no incluye 403 (A5).
+        if (context.Exception is not InventarioApiException { IsUnauthorized: true })
         {
             return;
         }
