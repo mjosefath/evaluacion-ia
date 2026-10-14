@@ -1,0 +1,12 @@
+C:\Git\evaluacion-ia\src\Inventario.Contracts\bin\Debug\net10.0\Inventario.Contracts.deps.json
+C:\Git\evaluacion-ia\src\Inventario.Contracts\bin\Debug\net10.0\Inventario.Contracts.dll
+C:\Git\evaluacion-ia\src\Inventario.Contracts\bin\Debug\net10.0\Inventario.Contracts.pdb
+C:\Git\evaluacion-ia\src\Inventario.Contracts\obj\Debug\net10.0\Inventario.Contracts.GeneratedMSBuildEditorConfig.editorconfig
+C:\Git\evaluacion-ia\src\Inventario.Contracts\obj\Debug\net10.0\Inventario.Contracts.AssemblyInfoInputs.cache
+C:\Git\evaluacion-ia\src\Inventario.Contracts\obj\Debug\net10.0\Inventario.Contracts.AssemblyInfo.cs
+C:\Git\evaluacion-ia\src\Inventario.Contracts\obj\Debug\net10.0\Inventario.Contracts.csproj.CoreCompileInputs.cache
+C:\Git\evaluacion-ia\src\Inventario.Contracts\obj\Debug\net10.0\Inventario.Contracts.sourcelink.json
+C:\Git\evaluacion-ia\src\Inventario.Contracts\obj\Debug\net10.0\Inventario.Contracts.dll
+C:\Git\evaluacion-ia\src\Inventario.Contracts\obj\Debug\net10.0\refint\Inventario.Contracts.dll
+C:\Git\evaluacion-ia\src\Inventario.Contracts\obj\Debug\net10.0\Inventario.Contracts.pdb
+C:\Git\evaluacion-ia\src\Inventario.Contracts\obj\Debug\net10.0\ref\Inventario.Contracts.dll

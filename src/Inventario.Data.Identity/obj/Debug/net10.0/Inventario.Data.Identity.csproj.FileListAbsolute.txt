@@ -1,0 +1,12 @@
+C:\Git\evaluacion-ia\src\Inventario.Data.Identity\bin\Debug\net10.0\Inventario.Data.Identity.deps.json
+C:\Git\evaluacion-ia\src\Inventario.Data.Identity\bin\Debug\net10.0\Inventario.Data.Identity.dll
+C:\Git\evaluacion-ia\src\Inventario.Data.Identity\bin\Debug\net10.0\Inventario.Data.Identity.pdb
+C:\Git\evaluacion-ia\src\Inventario.Data.Identity\obj\Debug\net10.0\Inventario.Data.Identity.GeneratedMSBuildEditorConfig.editorconfig
+C:\Git\evaluacion-ia\src\Inventario.Data.Identity\obj\Debug\net10.0\Inventario.Data.Identity.AssemblyInfoInputs.cache
+C:\Git\evaluacion-ia\src\Inventario.Data.Identity\obj\Debug\net10.0\Inventario.Data.Identity.AssemblyInfo.cs
+C:\Git\evaluacion-ia\src\Inventario.Data.Identity\obj\Debug\net10.0\Inventario.Data.Identity.csproj.CoreCompileInputs.cache
+C:\Git\evaluacion-ia\src\Inventario.Data.Identity\obj\Debug\net10.0\Inventario.Data.Identity.sourcelink.json
+C:\Git\evaluacion-ia\src\Inventario.Data.Identity\obj\Debug\net10.0\Inventario.Data.Identity.dll
+C:\Git\evaluacion-ia\src\Inventario.Data.Identity\obj\Debug\net10.0\refint\Inventario.Data.Identity.dll
+C:\Git\evaluacion-ia\src\Inventario.Data.Identity\obj\Debug\net10.0\Inventario.Data.Identity.pdb
+C:\Git\evaluacion-ia\src\Inventario.Data.Identity\obj\Debug\net10.0\ref\Inventario.Data.Identity.dll

@@ -1,0 +1,56 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "Inventario.Web/1.0.0": {
+        "dependencies": {
+          "Inventario.ApiClient": "1.0.0",
+          "Inventario.Contracts": "1.0.0"
+        },
+        "runtime": {
+          "Inventario.Web.dll": {}
+        }
+      },
+      "Inventario.ApiClient/1.0.0": {
+        "dependencies": {
+          "Inventario.Contracts": "1.0.0"
+        },
+        "runtime": {
+          "Inventario.ApiClient.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Inventario.Contracts/1.0.0": {
+        "runtime": {
+          "Inventario.Contracts.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Inventario.Web/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Inventario.ApiClient/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Inventario.Contracts/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
