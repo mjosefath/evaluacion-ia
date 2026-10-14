@@ -4,15 +4,20 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>cc31ae42-3861-4bed-a650-666b3c1bad62</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Inventario.Application\Inventario.Application.csproj" />
     <ProjectReference Include="..\Inventario.Contracts\Inventario.Contracts.csproj" />
+    <ProjectReference Include="..\Inventario.Data.Identity\Inventario.Data.Identity.csproj" />
+    <ProjectReference Include="..\Inventario.Data.System\Inventario.Data.System.csproj" />
   </ItemGroup>
 
 </Project>
