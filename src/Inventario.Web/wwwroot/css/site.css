@@ -461,7 +461,7 @@ span.form-error:empty {
 }
 
 .ui-dialog::backdrop {
-  background: rgba(10, 10, 10, 0.35);
+  background: var(--overlay-scrim);
 }
 
 .confirm-dialog {
@@ -556,7 +556,7 @@ span.form-error:empty {
 .loading-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--overlay-loading);
   display: none;
   align-items: center;
   justify-content: center;
