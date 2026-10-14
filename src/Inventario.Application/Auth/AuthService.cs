@@ -1,3 +1,4 @@
+using Inventario.Application.Results;
 using Inventario.Application.Services;
 using Inventario.Contracts.Auth;
 using Microsoft.AspNetCore.Identity;
@@ -13,7 +14,7 @@ public sealed class AuthService(
     IRefreshTokenService refreshTokens,
     IAccessLogWriter accessLogs) : IAuthService
 {
-    public async Task<AuthResult<AuthTokenResponse>> LoginAsync(
+    public async Task<Result<AuthTokenResponse>> LoginAsync(
         LoginRequest request,
         string? ipAddress,
         string? userAgent,
@@ -22,10 +23,7 @@ public sealed class AuthService(
         var fieldErrors = ValidateLogin(request);
         if (fieldErrors is not null)
         {
-            return AuthResult<AuthTokenResponse>.Failure(
-                AuthErrorCode.Validation,
-                "Datos de entrada inválidos.",
-                fieldErrors);
+            return Result<AuthTokenResponse>.Validation(fieldErrors);
         }
 
         var userName = request.UserName.Trim();
@@ -40,9 +38,9 @@ public sealed class AuthService(
                 userAgent,
                 cancellationToken: cancellationToken);
 
-            return AuthResult<AuthTokenResponse>.Failure(
-                AuthErrorCode.InvalidCredentials,
-                "Credenciales inválidas.");
+            return Result<AuthTokenResponse>.Failure(
+                ErrorCodes.AuthInvalidCredentials,
+                MessageCatalog.AuthInvalidCredentials);
         }
 
         var signIn = await signInManager.CheckPasswordSignInAsync(
@@ -60,9 +58,9 @@ public sealed class AuthService(
                 userAgent,
                 cancellationToken: cancellationToken);
 
-            return AuthResult<AuthTokenResponse>.Failure(
-                AuthErrorCode.Lockout,
-                "Cuenta bloqueada temporalmente.");
+            return Result<AuthTokenResponse>.Failure(
+                ErrorCodes.AuthLocked,
+                MessageCatalog.AuthLocked);
         }
 
         if (!signIn.Succeeded)
@@ -75,17 +73,17 @@ public sealed class AuthService(
                 userAgent,
                 cancellationToken: cancellationToken);
 
-            return AuthResult<AuthTokenResponse>.Failure(
-                AuthErrorCode.InvalidCredentials,
-                "Credenciales inválidas.");
+            return Result<AuthTokenResponse>.Failure(
+                ErrorCodes.AuthInvalidCredentials,
+                MessageCatalog.AuthInvalidCredentials);
         }
 
         var profile = await userProfiles.GetOrCreateAsync(user.Id, user.UserName ?? userName, cancellationToken);
         if (!profile.IsActive)
         {
-            return AuthResult<AuthTokenResponse>.Failure(
-                AuthErrorCode.InactiveProfile,
-                "Perfil inactivo.");
+            return Result<AuthTokenResponse>.Failure(
+                ErrorCodes.AuthInactiveProfile,
+                MessageCatalog.AuthInactiveProfile);
         }
 
         var tokens = await IssueTokensAsync(user, cancellationToken);
@@ -98,10 +96,10 @@ public sealed class AuthService(
             userAgent,
             cancellationToken: cancellationToken);
 
-        return AuthResult<AuthTokenResponse>.Success(tokens);
+        return Result<AuthTokenResponse>.Success(tokens);
     }
 
-    public async Task<AuthResult<AuthTokenResponse>> RefreshAsync(
+    public async Task<Result<AuthTokenResponse>> RefreshAsync(
         RefreshRequest request,
         string? ipAddress,
         string? userAgent,
@@ -109,29 +107,27 @@ public sealed class AuthService(
     {
         if (string.IsNullOrWhiteSpace(request.RefreshToken))
         {
-            return AuthResult<AuthTokenResponse>.Failure(
-                AuthErrorCode.Validation,
-                "Datos de entrada inválidos.",
+            return Result<AuthTokenResponse>.Validation(
                 new Dictionary<string, string[]>
                 {
-                    ["refreshToken"] = ["El refresh token es obligatorio."]
+                    ["refreshToken"] = [MessageCatalog.FieldRefreshTokenRequired]
                 });
         }
 
         var current = await refreshTokens.FindActiveByPlainTokenAsync(request.RefreshToken, cancellationToken);
         if (current is null)
         {
-            return AuthResult<AuthTokenResponse>.Failure(
-                AuthErrorCode.InvalidRefreshToken,
-                "Refresh token inválido o vencido.");
+            return Result<AuthTokenResponse>.Failure(
+                ErrorCodes.AuthSessionExpired,
+                MessageCatalog.AuthSessionExpired);
         }
 
         var user = await userManager.FindByIdAsync(current.UserId);
         if (user is null)
         {
-            return AuthResult<AuthTokenResponse>.Failure(
-                AuthErrorCode.Unauthorized,
-                "Usuario no encontrado.");
+            return Result<AuthTokenResponse>.Failure(
+                ErrorCodes.AuthSessionExpired,
+                MessageCatalog.AuthSessionExpired);
         }
 
         var profile = await userProfiles.GetOrCreateAsync(
@@ -141,17 +137,17 @@ public sealed class AuthService(
 
         if (!profile.IsActive)
         {
-            return AuthResult<AuthTokenResponse>.Failure(
-                AuthErrorCode.InactiveProfile,
-                "Perfil inactivo.");
+            return Result<AuthTokenResponse>.Failure(
+                ErrorCodes.AuthInactiveProfile,
+                MessageCatalog.AuthInactiveProfile);
         }
 
         var rotated = await refreshTokens.RotateAsync(current, cancellationToken);
         if (rotated is null)
         {
-            return AuthResult<AuthTokenResponse>.Failure(
-                AuthErrorCode.InvalidRefreshToken,
-                "Refresh token inválido o vencido.");
+            return Result<AuthTokenResponse>.Failure(
+                ErrorCodes.AuthSessionExpired,
+                MessageCatalog.AuthSessionExpired);
         }
 
         var roles = await userManager.GetRolesAsync(user);
@@ -166,7 +162,7 @@ public sealed class AuthService(
             userAgent,
             cancellationToken: cancellationToken);
 
-        return AuthResult<AuthTokenResponse>.Success(
+        return Result<AuthTokenResponse>.Success(
             new AuthTokenResponse(
                 accessToken,
                 rotated.Value.PlainToken,
@@ -174,7 +170,7 @@ public sealed class AuthService(
                 new DateTimeOffset(rotated.Value.Entity.ExpiresAtUtc, TimeSpan.Zero)));
     }
 
-    public async Task<AuthResult<object?>> LogoutAsync(
+    public async Task<Result<object?>> LogoutAsync(
         string userId,
         LogoutRequest request,
         string? ipAddress,
@@ -183,7 +179,9 @@ public sealed class AuthService(
     {
         if (string.IsNullOrWhiteSpace(userId))
         {
-            return AuthResult<object?>.Failure(AuthErrorCode.Unauthorized, "No autenticado.");
+            return Result<object?>.Failure(
+                ErrorCodes.AuthSessionExpired,
+                MessageCatalog.AuthUnauthorized);
         }
 
         await refreshTokens.RevokeAsync(userId, request.RefreshToken, cancellationToken);
@@ -196,10 +194,10 @@ public sealed class AuthService(
             userAgent,
             cancellationToken: cancellationToken);
 
-        return AuthResult<object?>.Success(null);
+        return Result<object?>.Success(null);
     }
 
-    public async Task<AuthResult<object?>> ChangePasswordAsync(
+    public async Task<Result<object?>> ChangePasswordAsync(
         string userId,
         ChangePasswordRequest request,
         string? ipAddress,
@@ -209,16 +207,15 @@ public sealed class AuthService(
         var fieldErrors = ValidateChangePassword(request);
         if (fieldErrors is not null)
         {
-            return AuthResult<object?>.Failure(
-                AuthErrorCode.Validation,
-                "Datos de entrada inválidos.",
-                fieldErrors);
+            return Result<object?>.Validation(fieldErrors);
         }
 
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
-            return AuthResult<object?>.Failure(AuthErrorCode.NotFound, "Usuario no encontrado.");
+            return Result<object?>.Failure(
+                ErrorCodes.NotFound,
+                MessageCatalog.NotFound);
         }
 
         var change = await userManager.ChangePasswordAsync(
@@ -228,15 +225,16 @@ public sealed class AuthService(
 
         if (!change.Succeeded)
         {
+            // Descripciones Identity: se reenvían en FieldErrors (excepción M2 del análisis / T03-06).
             var errors = change.Errors
                 .GroupBy(e => string.IsNullOrWhiteSpace(e.Code) ? "password" : e.Code)
                 .ToDictionary(
                     g => MapPasswordField(g.Key),
                     g => g.Select(e => e.Description).ToArray());
 
-            return AuthResult<object?>.Failure(
-                AuthErrorCode.PasswordChangeFailed,
-                "No se pudo cambiar la contraseña.",
+            return Result<object?>.Failure(
+                ErrorCodes.Validation,
+                MessageCatalog.AuthPasswordChangeFailed,
                 errors);
         }
 
@@ -250,22 +248,26 @@ public sealed class AuthService(
             userAgent,
             cancellationToken: cancellationToken);
 
-        return AuthResult<object?>.Success(null);
+        return Result<object?>.Success(null);
     }
 
-    public async Task<AuthResult<MeResponse>> MeAsync(
+    public async Task<Result<MeResponse>> MeAsync(
         string userId,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(userId))
         {
-            return AuthResult<MeResponse>.Failure(AuthErrorCode.Unauthorized, "No autenticado.");
+            return Result<MeResponse>.Failure(
+                ErrorCodes.AuthSessionExpired,
+                MessageCatalog.AuthUnauthorized);
         }
 
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
-            return AuthResult<MeResponse>.Failure(AuthErrorCode.NotFound, "Usuario no encontrado.");
+            return Result<MeResponse>.Failure(
+                ErrorCodes.NotFound,
+                MessageCatalog.NotFound);
         }
 
         var profile = await userProfiles.GetOrCreateAsync(
@@ -275,15 +277,15 @@ public sealed class AuthService(
 
         if (!profile.IsActive)
         {
-            return AuthResult<MeResponse>.Failure(
-                AuthErrorCode.InactiveProfile,
-                "Perfil inactivo.");
+            return Result<MeResponse>.Failure(
+                ErrorCodes.AuthInactiveProfile,
+                MessageCatalog.AuthInactiveProfile);
         }
 
         var roles = await userManager.GetRolesAsync(user);
         var permissionCodes = await permissions.GetPermissionCodesForRolesAsync(roles, cancellationToken);
 
-        return AuthResult<MeResponse>.Success(
+        return Result<MeResponse>.Success(
             new MeResponse(profile.DisplayName, roles.ToList(), permissionCodes));
     }
 
@@ -309,12 +311,12 @@ public sealed class AuthService(
 
         if (string.IsNullOrWhiteSpace(request.UserName))
         {
-            errors["userName"] = ["El usuario es obligatorio."];
+            errors["userName"] = [MessageCatalog.FieldUserNameRequired];
         }
 
         if (string.IsNullOrWhiteSpace(request.Password))
         {
-            errors["password"] = ["La contraseña es obligatoria."];
+            errors["password"] = [MessageCatalog.FieldPasswordRequired];
         }
 
         return errors.Count == 0 ? null : errors;
@@ -326,12 +328,12 @@ public sealed class AuthService(
 
         if (string.IsNullOrWhiteSpace(request.CurrentPassword))
         {
-            errors["currentPassword"] = ["La contraseña actual es obligatoria."];
+            errors["currentPassword"] = [MessageCatalog.FieldCurrentPasswordRequired];
         }
 
         if (string.IsNullOrWhiteSpace(request.NewPassword))
         {
-            errors["newPassword"] = ["La contraseña nueva es obligatoria."];
+            errors["newPassword"] = [MessageCatalog.FieldNewPasswordRequired];
         }
 
         return errors.Count == 0 ? null : errors;

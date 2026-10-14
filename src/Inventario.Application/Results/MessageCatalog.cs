@@ -19,6 +19,12 @@ public static class MessageCatalog
     public const string AuthUnauthorized = "No estás autenticado. Inicia sesión de nuevo.";
     public const string AuthPasswordChangeFailed = "No se pudo cambiar la contraseña. Revisa los datos e inténtalo de nuevo.";
 
+    public const string FieldUserNameRequired = "El usuario es obligatorio.";
+    public const string FieldPasswordRequired = "La contraseña es obligatoria.";
+    public const string FieldRefreshTokenRequired = "El refresh token es obligatorio.";
+    public const string FieldCurrentPasswordRequired = "La contraseña actual es obligatoria.";
+    public const string FieldNewPasswordRequired = "La contraseña nueva es obligatoria.";
+
     public static string ForCode(string code, string? rule = null) =>
         code switch
         {

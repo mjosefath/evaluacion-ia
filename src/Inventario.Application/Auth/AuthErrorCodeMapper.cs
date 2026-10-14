@@ -19,13 +19,17 @@ public static class AuthErrorCodeMapper
         _ => ErrorCodes.Unexpected
     };
 
+    /// <summary>
+    /// Invierte a AuthErrorCode para AuthResultHttpMapper (hasta T03-07).
+    /// session_expired → Unauthorized (mismo HTTP 401 que InvalidRefreshToken).
+    /// </summary>
     public static AuthErrorCode FromErrorCode(string? code) => code switch
     {
         ErrorCodes.AuthInvalidCredentials => AuthErrorCode.InvalidCredentials,
         ErrorCodes.AuthLocked => AuthErrorCode.Lockout,
         ErrorCodes.AuthInactiveProfile => AuthErrorCode.InactiveProfile,
         ErrorCodes.Validation => AuthErrorCode.Validation,
-        ErrorCodes.AuthSessionExpired => AuthErrorCode.Unauthorized,
+        ErrorCodes.AuthSessionExpired => AuthErrorCode.InvalidRefreshToken,
         ErrorCodes.NotFound => AuthErrorCode.NotFound,
         ErrorCodes.Forbidden => AuthErrorCode.Unauthorized,
         _ => AuthErrorCode.None
