@@ -1,6 +1,7 @@
 using Inventario.ApiClient.Auth;
 using Inventario.Contracts.Auth;
 using Inventario.Web.Auth;
+using Inventario.Web.Errors;
 using Inventario.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +25,7 @@ public sealed class AccountController(
 
         if (sessionExpired)
         {
-            TempData["Error"] = "Tu sesión ha vencido. Inicia sesión de nuevo.";
+            TempData["Error"] = WebUiMessages.SessionExpired;
         }
 
         ViewData["ReturnUrl"] = returnUrl;
@@ -57,30 +58,36 @@ public sealed class AccountController(
 
             return RedirectToLocal(returnUrl);
         }
-        catch (InventarioApiException ex) when (ex.IsUnauthorized)
+        catch (InventarioApiException ex)
         {
             await authSession.SignOutAsync(cancellationToken);
-            model.ErrorMessage = "Credenciales inválidas.";
+            var translation = ApiErrorTranslator.Translate(ex.Error, ApiErrorSurface.Form);
+            model.ErrorMessage = translation.Message
+                ?? ex.Error.Detail
+                ?? WebUiMessages.Unexpected;
             return View(model);
         }
-        catch (InventarioApiException ex) when (ex.StatusCode == 423)
+        catch (HttpRequestException)
         {
             await authSession.SignOutAsync(cancellationToken);
-            model.ErrorMessage = "Cuenta bloqueada temporalmente. Intenta más tarde.";
+            model.ErrorMessage = WebUiMessages.ConnectionFailed;
             return View(model);
         }
-        catch (InventarioApiException ex) when (ex.IsForbidden)
+        catch (TaskCanceledException)
         {
             await authSession.SignOutAsync(cancellationToken);
-            model.ErrorMessage = "Perfil inactivo. Contacta al administrador.";
+            model.ErrorMessage = WebUiMessages.Timeout;
             return View(model);
         }
-        catch (InventarioApiException)
-        {
-            await authSession.SignOutAsync(cancellationToken);
-            model.ErrorMessage = "No se pudo iniciar sesión. Intenta de nuevo.";
-            return View(model);
-        }
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult AccessDenied()
+    {
+        Response.StatusCode = StatusCodes.Status403Forbidden;
+        ViewData["Message"] = WebUiMessages.Forbidden;
+        return View();
     }
 
     /// <summary>
@@ -92,8 +99,7 @@ public sealed class AccountController(
         RedirectToAction(nameof(HomeController.Index), "Home");
 
     /// <summary>
-    /// POST del modal: AJAX (X-Requested-With) → partial HTML con errores o JSON { redirectUrl }.
-    /// Éxito: SignOut + redirect a Login (mismo comportamiento que la página antigua).
+    /// POST del modal: AJAX → partial HTML con errores o JSON { redirectUrl }.
     /// </summary>
     [HttpPost]
     [Authorize]
@@ -113,7 +119,6 @@ public sealed class AccountController(
                 new ChangePasswordRequest(model.CurrentPassword, model.NewPassword),
                 cancellationToken);
 
-            // ApiClient.ClearAsync ya limpia la cookie; reforzamos SignOut local.
             await authSession.SignOutAsync(cancellationToken);
             TempData["Success"] = "Contraseña actualizada. Inicia sesión de nuevo.";
 
@@ -124,38 +129,92 @@ public sealed class AccountController(
 
             return RedirectToAction(nameof(Login));
         }
-        catch (InventarioApiException ex) when (ex.StatusCode == 400)
+        catch (InventarioApiException ex)
         {
-            ApplyChangePasswordApiErrors(ex);
+            return await HandleChangePasswordApiErrorAsync(model, ex, cancellationToken);
+        }
+        catch (HttpRequestException)
+        {
+            ModelState.AddModelError(string.Empty, WebUiMessages.ConnectionFailed);
             return ChangePasswordFormResult(model, statusCode: 400);
         }
-        catch (InventarioApiException ex) when (ex.IsUnauthorized)
+        catch (TaskCanceledException)
         {
-            await authSession.SignOutAsync(cancellationToken);
-            TempData["Error"] = "Tu sesión no es válida. Inicia sesión de nuevo.";
+            ModelState.AddModelError(string.Empty, WebUiMessages.Timeout);
+            return ChangePasswordFormResult(model, statusCode: 400);
+        }
+    }
 
-            if (IsModalAjaxRequest())
-            {
-                return Json(new
+    private async Task<IActionResult> HandleChangePasswordApiErrorAsync(
+        ChangePasswordViewModel model,
+        InventarioApiException ex,
+        CancellationToken cancellationToken)
+    {
+        var translation = ApiErrorTranslator.Translate(ex.Error, ApiErrorSurface.Form);
+
+        switch (translation.Disposition)
+        {
+            case ApiErrorDisposition.ApplyModelState:
+                ApiErrorTranslator.ApplyToModelState(ModelState, translation, MapChangePasswordField);
+                return ChangePasswordFormResult(model, statusCode: 400);
+
+            case ApiErrorDisposition.FormMessage:
+            case ApiErrorDisposition.TempDataError:
+                ModelState.AddModelError(
+                    string.Empty,
+                    translation.Message ?? ex.Error.Detail ?? WebUiMessages.Unexpected);
+                return ChangePasswordFormResult(model, statusCode: ex.StatusCode is >= 400 and < 600 ? ex.StatusCode : 400);
+
+            case ApiErrorDisposition.RedirectLoginSessionExpired:
+                await authSession.SignOutAsync(cancellationToken);
+                TempData["Error"] = translation.Message ?? WebUiMessages.SessionExpired;
+
+                if (IsModalAjaxRequest())
                 {
-                    redirectUrl = Url.Action(nameof(Login), new { sessionExpired = true })
-                });
-            }
+                    return Json(new
+                    {
+                        redirectUrl = Url.Action(nameof(Login), new { sessionExpired = true })
+                    });
+                }
 
-            return RedirectToAction(nameof(Login), new { sessionExpired = true });
-        }
-        catch (InventarioApiException ex) when (ex.IsForbidden)
-        {
-            // A5: 403 ≠ sesión vencida; W1 AccessDenied llega en T03-09.
-            ModelState.AddModelError(
-                string.Empty,
-                ex.Error.Detail ?? "No tienes permiso para esta acción.");
-            return ChangePasswordFormResult(model, statusCode: 403);
-        }
-        catch (InventarioApiException)
-        {
-            ModelState.AddModelError(string.Empty, "No se pudo cambiar la contraseña. Intenta de nuevo.");
-            return ChangePasswordFormResult(model, statusCode: 400);
+                return RedirectToAction(nameof(Login), new { sessionExpired = true });
+
+            case ApiErrorDisposition.RedirectAccessDenied:
+                if (IsModalAjaxRequest())
+                {
+                    return Json(new { redirectUrl = Url.Action(nameof(AccessDenied)) });
+                }
+
+                return RedirectToAction(nameof(AccessDenied));
+
+            case ApiErrorDisposition.RedirectNotFound:
+                if (IsModalAjaxRequest())
+                {
+                    return Json(new { redirectUrl = Url.Action("NotFound", "Home") });
+                }
+
+                return RedirectToAction("NotFound", "Home");
+
+            case ApiErrorDisposition.RedirectError:
+                if (IsModalAjaxRequest())
+                {
+                    return Json(new
+                    {
+                        redirectUrl = Url.Action(
+                            nameof(HomeController.Error),
+                            "Home",
+                            new { traceId = translation.TraceId ?? ex.Error.TraceId })
+                    });
+                }
+
+                return RedirectToAction(
+                    nameof(HomeController.Error),
+                    "Home",
+                    new { traceId = translation.TraceId ?? ex.Error.TraceId });
+
+            default:
+                ModelState.AddModelError(string.Empty, WebUiMessages.Unexpected);
+                return ChangePasswordFormResult(model, statusCode: 400);
         }
     }
 
@@ -199,29 +258,6 @@ public sealed class AccountController(
         !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl)
             ? Redirect(returnUrl)
             : RedirectToAction(nameof(HomeController.Index), "Home");
-
-    private void ApplyChangePasswordApiErrors(InventarioApiException ex)
-    {
-        var error = ex.Error;
-
-        if (error.Errors is { Count: > 0 })
-        {
-            foreach (var (key, messages) in error.Errors)
-            {
-                var field = MapChangePasswordField(key);
-                foreach (var message in messages)
-                {
-                    ModelState.AddModelError(field, message);
-                }
-            }
-
-            return;
-        }
-
-        ModelState.AddModelError(
-            string.Empty,
-            error.Detail ?? error.Title ?? "No se pudo cambiar la contraseña.");
-    }
 
     private static string MapChangePasswordField(string apiKey) =>
         apiKey.ToLowerInvariant() switch

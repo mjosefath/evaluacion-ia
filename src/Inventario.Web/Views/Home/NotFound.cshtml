@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "No encontrado";
+}
+
+<section class="app-page" aria-labelledby="page-title">
+    <h1 id="page-title" class="app-page-title">No encontrado</h1>
+    <div class="alerts">
+        <div class="alert alert-error" role="alert">
+            @await Html.PartialAsync("_AlertIcon", "error")
+            <div class="alert-content">
+                <p>@(ViewData["Message"] as string ?? "No encontramos lo que buscas.")</p>
+            </div>
+        </div>
+    </div>
+    <p class="text-caption">
+        <a asp-controller="Home" asp-action="Index">Volver al inicio</a>
+    </p>
+</section>

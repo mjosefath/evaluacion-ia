@@ -1,6 +1,7 @@
 @model ErrorViewModel
 @{
     ViewData["Title"] = "Error";
+    var reference = Model?.RequestId;
 }
 
 <section class="app-page" aria-labelledby="page-title">
@@ -10,10 +11,7 @@
             @await Html.PartialAsync("_AlertIcon", "error")
             <div class="alert-content">
                 <p>Ha ocurrido un problema al procesar la solicitud.</p>
-                @if (Model?.ShowRequestId == true)
-                {
-                    <p class="text-caption">Request ID: @Model.RequestId</p>
-                }
+                <p class="text-caption">Código de referencia: @(string.IsNullOrWhiteSpace(reference) ? "—" : reference)</p>
             </div>
         </div>
     </div>

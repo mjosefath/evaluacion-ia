@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Acceso denegado";
+}
+
+<section class="app-page" aria-labelledby="page-title">
+    <h1 id="page-title" class="app-page-title">Acceso denegado</h1>
+    <div class="alerts">
+        <div class="alert alert-error" role="alert">
+            @await Html.PartialAsync("_AlertIcon", "error")
+            <div class="alert-content">
+                <p>@(ViewData["Message"] as string ?? "No tienes permiso para esta acción.")</p>
+            </div>
+        </div>
+    </div>
+    <p class="text-caption">
+        <a asp-controller="Home" asp-action="Index">Volver al inicio</a>
+    </p>
+</section>
