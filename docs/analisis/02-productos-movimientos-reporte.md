@@ -105,6 +105,41 @@ En el Reporte, la búsqueda maestra cubre el filtro "por código o nombre" que p
 - PG6. Al cambiar la búsqueda o un filtro, se regresa a la página 1.
 - PG7. Los filtros, la página y el orden viajan en la URL: recargar la página, usar Atrás o compartir el enlace
   conserva la vista.
+- PG8. **Todos los catálogos son paginados**, tengan o no pantalla propia: Categories, MovementTypes,
+  RecordStatuses y el buscador de productos de Movimientos. Usan la misma búsqueda maestra (sobre `Name`, y
+  también `Code` donde exista), el mismo contrato paginado y su propio procedimiento de lectura.
+- PG9. En los formularios, un catálogo se elige con un **selector con búsqueda**:
+  - al abrirlo carga la página 1 (20 elementos);
+  - al escribir, busca con B2–B3;
+  - al llegar al final de la lista, carga la página siguiente;
+  - con teclado: flechas para moverse, Enter para elegir y Esc para cerrar.
+  Si el elemento elegido ya está inactivo, se sigue mostrando (marcado como inactivo) al editar un registro que lo
+  usa, pero no aparece para elecciones nuevas.
+- PG10. **Ningún campo de opciones usa una lista desplegable simple** (`<select>` nativo): todo campo donde se elige
+  de una lista, en formularios o en filtros, es una lista con búsqueda (PG9), aunque tenga pocas opciones (por
+  ejemplo, el estatus o el tipo de movimiento).
+
+### Filtros en sintonía
+
+- FL1. Todas las pantallas usan **la misma barra de filtros**, con el mismo orden: búsqueda maestra primero, luego
+  los filtros específicos (listas con búsqueda y rango de fechas) y al final "Limpiar filtros".
+- FL2. Un mismo dato se filtra igual en todas las pantallas: mismo selector, mismo nombre de campo y mismas
+  opciones. Por ejemplo, "Categoría" se comporta igual en Productos y en Reporte, y "Tipo" igual en Movimientos y
+  en Historial.
+- FL3. La barra, la tabla, el paginador y la URL siempre muestran el mismo estado: al cambiar un filtro se
+  actualizan la tabla, los totales y la URL, y se regresa a la página 1 (PG6).
+- FL4. Cada filtro activo se muestra como etiqueta (badge) debajo de la barra, con su botón para quitarlo; "Limpiar
+  filtros" los quita todos, incluida la búsqueda.
+- FL5. Si hay dos filtros relacionados en la misma pantalla, las opciones del segundo se acotan según el primero, y
+  si un valor elegido deja de ser compatible, se limpia y se avisa.
+- FL6. Los selectores de los filtros muestran también los elementos inactivos, marcados como tales, para poder
+  consultar el historial; los selectores de captura muestran solo los activos (PG9).
+
+| Pantalla | Barra de filtros (en este orden) |
+|----------|----------------------------------|
+| Productos | Búsqueda · Categoría · Estatus (Activo por defecto) |
+| Historial | Búsqueda · Tipo · Fecha desde / hasta |
+| Reporte | Búsqueda · Categoría |
 
 | Pantalla | Orden por defecto | Columnas ordenables |
 |----------|-------------------|---------------------|
@@ -120,9 +155,13 @@ En el Reporte, la búsqueda maestra cubre el filtro "por código o nombre" que p
 
 | Procedimiento | Pantalla | Parámetros (además de `@Search`, `@Page`, `@PageSize`, `@SortColumn`, `@SortDirection`) | Salida |
 |---------------|----------|-------------------------------------------------|--------|
-| `usp_Products_List` | Productos | `@StatusId` (NULL = todos) | Filas + `@TotalRows OUTPUT` |
+| `usp_Products_List` | Productos | `@CategoryId`, `@StatusId` (NULL = todos) | Filas + `@TotalRows OUTPUT` |
 | `usp_InventoryMovements_List` | Historial | `@MovementTypeId`, `@DateFromUtc`, `@DateToUtc` | Filas + `@TotalRows OUTPUT` |
 | `usp_Report_Stock` | Reporte | `@CategoryId` | Filas + `@TotalRows OUTPUT` + `@GrandTotal OUTPUT` |
+| `usp_Categories_List` | Selector de categoría (Productos, Reporte) | `@StatusId` (por defecto, activos) | Filas + `@TotalRows OUTPUT` |
+| `usp_MovementTypes_List` | Selector de tipo (Movimientos, Historial) | `@StatusId` | Filas + `@TotalRows OUTPUT` |
+| `usp_RecordStatuses_List` | Selector de estatus (Productos) | — | Filas + `@TotalRows OUTPUT` |
+| `usp_Products_Lookup` | Buscador de producto (Movimientos) | solo activos; devuelve la existencia | Filas + `@TotalRows OUTPUT` |
 
 - SP3. La existencia actual sale de una sola vista, `vw_ProductStock` (ProductId y existencia = último
   `StockAfter`, o 0 si no hay movimientos). La usan los tres procedimientos y la API al registrar un movimiento
@@ -222,7 +261,8 @@ Ya están construidas y hoy no cumplen el estándar. Lo que cambia en cada una:
 
 ### F1 — Productos (RF04)
 
-1. Listado: búsqueda maestra (B1–B6), filtro de estatus (E7) y paginación en el servidor (PG1–PG7), con
+1. Listado: barra de filtros (FL1–FL6) con búsqueda maestra (B1–B6), categoría y estatus (E7), y paginación en
+   el servidor (PG1–PG7), con
    `usp_Products_List`. Columnas: código, nombre, categoría, precio, mínimo, existencia, estado de stock y estatus.
 2. Alta: código, nombre, categoría, precio y mínimo. Nace Activo y con existencia 0.
 3. Edición: nombre, categoría, precio y mínimo, con `RowVersion` (E6). El código y la existencia se muestran, pero
@@ -235,7 +275,8 @@ Ya están construidas y hoy no cumplen el estándar. Lo que cambia en cada una:
 Una sola pantalla de captura (Movimientos), pensada para usarse con teclado:
 
 1. El usuario elige el tipo: Entrada / Salida / Ajuste.
-2. Escribe el código o el nombre del producto; solo aparecen productos activos. Al elegirlo ve su existencia actual.
+2. Busca el producto con el selector paginado (PG9) por código o nombre; solo aparecen productos activos. Al
+   elegirlo ve su existencia actual.
 3. Captura la cantidad: positiva en Entrada y Salida; con signo en Ajuste (variación, por ejemplo `-3`).
 4. Motivo: opcional en Entrada y Salida, obligatorio en Ajuste.
 5. Guarda. La API, en una sola transacción:
@@ -244,7 +285,8 @@ Una sola pantalla de captura (Movimientos), pensada para usarse con teclado:
    3. calcula la existencia posterior y la rechaza si queda negativa;
    4. inserta el movimiento con la existencia anterior y la posterior; `CreatedAtUtc` y `CreatedBy` los pone la
       API (E5).
-6. La Web muestra un aviso de éxito con la existencia anterior y la posterior, y deja el formulario listo para
+6. La Web muestra un aviso de éxito con la existencia anterior y la posterior (o, por R13, una advertencia si el
+   producto quedó en BAJO), y deja el formulario listo para
    la siguiente captura conservando el tipo elegido.
 
 ### F3 — Historial (RF08)
@@ -278,6 +320,8 @@ tiene existencia 0 y no aporta valor.
 - R11. Valor = precio × existencia; el total general suma solo las filas filtradas.
 - R12. Solo se puede desactivar un producto con existencia 0; si no está en 0, se rechaza con un aviso que indica
   la existencia actual. La validación es de la API, dentro del mismo bloqueo por producto de R8.
+- R13. Si una salida o un ajuste deja el producto en BAJO (existencia ≤ mínimo), el movimiento se guarda igual y se
+  avisa con una advertencia: "Guardado. Mouse USB quedó en 4 (mínimo 5)." No bloquea la operación (W10 de `03`).
 
 ## Pantallas
 
@@ -304,6 +348,10 @@ En todos los listados:
 - Sin resultados: mensaje "No hay resultados para «texto»" con un botón para limpiar filtros.
 - Mientras carga: `_Loading` sobre la tabla, sin borrar la página que ya se ve.
 
+En todos los formularios y filtros, la categoría, el tipo, el estatus y el producto se eligen con el selector
+paginado con búsqueda (PG9–PG10), nunca con una lista desplegable simple. La barra de filtros es la misma en todas
+las pantallas (FL1–FL6).
+
 ## Permisos
 
 Todos asignados al rol `Administrador` en el seed.
@@ -319,10 +367,12 @@ Todos asignados al rol `Administrador` en el seed.
 
 | Método | Ruta | Permiso |
 |--------|------|---------|
-| GET | `/api/categories` | autenticado |
-| GET | `/api/products?search&statusId&page&pageSize&sort&dir` | productos.ver |
+| GET | `/api/categories?search&statusId&page&pageSize` | autenticado |
+| GET | `/api/movement-types?search&statusId&page&pageSize` | autenticado |
+| GET | `/api/record-statuses?search&page&pageSize` | autenticado |
+| GET | `/api/products?search&categoryId&statusId&page&pageSize&sort&dir` | productos.ver |
 | GET | `/api/products/{id}` (incluye `RowVersion`) | productos.ver |
-| GET | `/api/products/lookup?term` (solo activos, con existencia) | cualquiera de movimientos.* |
+| GET | `/api/products/lookup?search&page&pageSize` (solo activos, con existencia) | cualquiera de movimientos.* |
 | POST | `/api/products` | productos.crear |
 | PUT | `/api/products/{id}` (con `RowVersion`) | productos.editar |
 | POST | `/api/products/{id}/deactivate` · `/activate` (con `RowVersion`) | productos.activar |
@@ -330,19 +380,29 @@ Todos asignados al rol `Administrador` en el seed.
 | GET | `/api/movements?search&typeId&from&to&page&pageSize&sort&dir` | historial.ver |
 | GET | `/api/reports/stock?search&categoryId&page&pageSize&sort&dir` (página + `TotalRows` + `GrandTotal`) | reporte.ver |
 
-`/api/products/lookup` no se pagina: devuelve como máximo 10 productos activos para el autocompletado de
-Movimientos, con la misma regla de búsqueda (B2–B3) sobre el código y el nombre.
+Todos los endpoints de catálogo y el buscador de productos responden con el contrato paginado (PG4) y aceptan la
+búsqueda maestra (PG8).
 
-Errores (formato de `01`): código duplicado → 409; existencia insuficiente, producto inactivo, cantidad o motivo
-inválidos → 400 con el error en su campo (por ejemplo, "Existencia insuficiente: disponible 8"); desactivar con
-existencia ≠ 0 → 400 con la existencia actual en el mensaje; `RowVersion` distinto → 409 "El producto cambió,
-recarga".
+Errores: códigos, mensajes y forma de mostrarlos según `03-errores-avisos-validaciones` (sus códigos van entre
+paréntesis).
+- Código duplicado → 409 (`conflict.duplicate`, en el campo `code`).
+- Existencia insuficiente → 400 (`business.rule` / `stock.insufficient`, en `quantity`): "Existencia insuficiente:
+  hay 8 unidades. Reduce la cantidad."
+- Producto inactivo → 400 (`business.rule` / `product.inactive`, en `productId`).
+- Ajuste sin motivo → 400 (`business.rule` / `adjustment.reason_required`, en `reason`).
+- Cantidad inválida → 400 (`validation`, en `quantity`).
+- Desactivar con existencia ≠ 0 → 400 (`business.rule` / `product.has_stock`), con la existencia en el mensaje.
+- `RowVersion` distinto → 409 (`conflict.concurrency`): "El producto cambió mientras lo editabas. Recarga para ver
+  los cambios."
 
 ## Reglas que impone a otros módulos
 
 - Toda tabla nueva de la BD Sistema cumple el estándar (E1–E11) y se declara mutable o inmutable.
 - Todo listado o reporte nuevo usa búsqueda maestra (B1–B6), paginación en el servidor (PG1–PG7) y un procedimiento
   almacenado de lectura (SP1–SP6), y declara sus columnas de búsqueda y de orden.
+- Todo catálogo nuevo se expone paginado, con su procedimiento `usp_<Catalogo>_List`, y se elige con el selector
+  paginado (PG8–PG10).
+- Toda pantalla nueva con listado usa la barra de filtros estándar (FL1–FL6).
 - Cualquier cambio futuro de existencia debe pasar por `InventoryMovements` con el mismo procedimiento transaccional.
 - Nadie calcula la existencia por su cuenta: se usa una sola consulta o vista en la API.
 
@@ -366,6 +426,12 @@ recarga".
 | Orden con `CASE` sobre una lista cerrada, sin SQL dinámico | Evita inyección de SQL y mantiene un plan de ejecución estable. |
 | Búsqueda con "contiene" (`LIKE '%…%'`), sin índice de texto completo | Con el volumen esperado basta; si crece, se evalúa el índice de texto completo sin cambiar el contrato. |
 | Filtros, página y orden en la URL | Recargar o volver no pierde la vista del usuario. |
+| Un procedimiento por catálogo, y no uno genérico | Uno genérico obligaría a usar SQL dinámico con el nombre de la tabla. |
+| Selector con búsqueda y carga por páginas al desplazarse | Un mismo componente para cualquier catálogo, sin importar cuántos elementos tenga. |
+| Selector con búsqueda basado en Tom Select (licencia Apache 2.0), en `wwwroot/lib`, con los tokens del diseño | Ya trae carga remota por páginas, teclado y accesibilidad; evita construir un componente propio. |
+| Una sola barra de filtros reutilizable (parcial Razor) | Mismo orden y comportamiento en todas las pantallas; los filtros no se desalinean entre pantallas. |
+| En los filtros se ven también los inactivos; en la captura no | Se puede consultar el historial de algo dado de baja sin poder usarlo en un movimiento nuevo. |
+| Filtro de categoría también en Productos | Mantiene en sintonía Productos y Reporte, que muestran los mismos productos. |
 
 ## Preguntas de negocio pendientes
 
@@ -383,6 +449,11 @@ Ninguna.
 | 2026-10-14 | Todas las tablas deben seguir un estándar uniforme de llave identity, borrado lógico, auditoría de creación y modificación, y fechas. |
 | 2026-10-14 | Los filtros son maestros: se puede buscar cualquier cosa desde una sola caja. |
 | 2026-10-14 | Los reportes se consultan con procedimientos almacenados y con paginación. |
+| 2026-10-14 | Todos los catálogos son paginados. |
+| 2026-10-14 | Todo campo de opciones (tipo lista desplegable) es una lista con búsqueda; los filtros deben estar en sintonía en todas las pantallas. |
+| 2026-10-14 | Si una salida o un ajuste deja el producto en BAJO, se guarda y se avisa con una advertencia (R13). |
+| 2026-10-14 | Documento aprobado. |
+| 2026-10-14 | Se autoriza modificar los scripts y el código ya construidos de `01` para aplicar la tabla "Alineación de las tablas de `01` al estándar"; la BD se recrea. |
 
 ---
 Fuera de punto: el contexto también exige `PROMPTS.md` y que el README liste lo que quede incompleto; no está en ningún documento todavía.
