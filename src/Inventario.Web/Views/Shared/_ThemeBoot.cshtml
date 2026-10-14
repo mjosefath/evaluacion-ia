@@ -1,0 +1,11 @@
+@* Anti-flash: aplica data-theme desde localStorage antes del paint (default light). *@
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem("inventario.theme");
+    document.documentElement.setAttribute("data-theme", t === "dark" ? "dark" : "light");
+  } catch (e) {
+    document.documentElement.setAttribute("data-theme", "light");
+  }
+})();
+</script>

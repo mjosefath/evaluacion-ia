@@ -4,12 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@(ViewData["Title"] ?? "Iniciar sesión") — Inventario</title>
+    <partial name="_ThemeBoot" />
     <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
     <partial name="_LucideSprite" />
     <div class="login-shell">
+        <div class="login-theme-bar">
+            <partial name="_ThemeToggle" />
+        </div>
         <div class="login-card card">
             <partial name="_Alerts" />
             @RenderBody()

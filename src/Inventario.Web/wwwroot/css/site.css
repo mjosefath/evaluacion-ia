@@ -603,8 +603,21 @@ span.form-error:empty {
   to { transform: rotate(360deg); }
 }
 
+/* —— Theme toggle —— */
+.theme-toggle .theme-toggle-icon-sun[hidden],
+.theme-toggle .theme-toggle-icon-moon[hidden] {
+  display: none;
+}
+
+.login-theme-bar {
+  position: absolute;
+  top: var(--spacing-16);
+  right: var(--spacing-16);
+}
+
 /* —— Login layout —— */
 .login-shell {
+  position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
