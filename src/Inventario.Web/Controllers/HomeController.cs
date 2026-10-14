@@ -7,8 +7,7 @@ namespace Inventario.Web.Controllers;
 
 public sealed class HomeController : Controller
 {
-    // AllowAnonymous temporal hasta T01-12 (cookie + [Authorize]).
-    [AllowAnonymous]
+    [Authorize]
     public IActionResult Index()
     {
         ViewData["Title"] = "Inicio";

@@ -7,9 +7,9 @@
 <h1 class="login-brand">Inventario</h1>
 <p class="login-subtitle">Inicia sesión para continuar</p>
 
-@* Formulario listo para cablear contra ApiClient en T01-12. *@
 <form asp-controller="Account" asp-action="Login" method="post" novalidate>
     @Html.AntiForgeryToken()
+    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
 
     <div class="form-field">
         <label class="form-label" asp-for="UserName">Usuario</label>

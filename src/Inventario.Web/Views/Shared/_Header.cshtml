@@ -1,6 +1,8 @@
 @{
-    // Placeholder hasta T01-12 (sesión real / DisplayName desde API).
-    var displayName = ViewData["DisplayName"] as string ?? "Usuario";
+    var displayName = User?.Identity?.IsAuthenticated == true
+                      && !string.Equals(User.Identity.Name, "pending", StringComparison.Ordinal)
+        ? User.Identity!.Name
+        : (ViewData["DisplayName"] as string ?? "Usuario");
 }
 
 <header class="app-header">
