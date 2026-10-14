@@ -343,13 +343,14 @@ Ninguna bloqueante. Login por nombre de usuario y nombre de producto `Inventario
 
 | Fecha | Decisión |
 |-------|----------|
-| 2026-03-25 | Dos proyectos host: API y Web, ambos .NET 10. |
-| 2026-03-25 | Solo la API toca BD; Web MVC Razor consume API por HTTP. |
-| 2026-03-25 | Cliente HTTP tipado + proyecto de contratos (DTOs); Web sin entidades EF. |
-| 2026-03-25 | Dos BD SQL Server: Identity e inventario/sistema; sin FK entre ellas; perfil en sistema con id Identity. |
-| 2026-03-25 | Sistema database-first: scripts numerados CREATE/INSERT en `database/`; scaffolding; recrear si cambia. Identity por script, sin migraciones al arrancar. |
-| 2026-03-25 | Web cookie + API JWT; login vía API; renovación silenciosa; lockout; logout; antiforgery en formularios. |
-| 2026-03-25 | Hash Identity; secretos en user-secrets / env; nunca en repo ni appsettings con secretos. |
-| 2026-03-25 | UI desde `recursos/ui`; adaptar a Razor; libs locales en `wwwroot/lib`; licencias MIT/Apache/BSD. |
-| 2026-03-25 | Serilog; en Development crear admin si no existe con contraseña desde user-secrets. |
-| 2026-03-25 | Fuera de alcance: inventario funcional, reportes, producción, pruebas. |
+| 2026-10-14 | Documento **aprobado** (deja de ser borrador). |
+| 2026-10-14 | Dos proyectos host: API y Web, ambos .NET 10. |
+| 2026-10-14 | Solo la API toca BD; Web MVC Razor consume API por HTTP. |
+| 2026-10-14 | Cliente HTTP tipado + proyecto de contratos (DTOs); Web sin entidades EF. |
+| 2026-10-14 | Dos BD SQL Server: Identity e inventario/sistema; sin FK entre ellas; perfil en sistema con id Identity. |
+| 2026-10-14 | Sistema database-first: scripts numerados CREATE/INSERT en `database/`; scaffolding; recrear si cambia. Identity por script, sin migraciones al arrancar. |
+| 2026-10-14 | Web cookie + API JWT; login vía API; renovación silenciosa; lockout; logout; antiforgery en formularios. |
+| 2026-10-14 | Hash Identity; secretos en user-secrets / env; nunca en repo ni appsettings con secretos. |
+| 2026-10-14 | UI desde `recursos/ui`; adaptar a Razor; libs locales en `wwwroot/lib`; licencias MIT/Apache/BSD. |
+| 2026-10-14 | Serilog; en Development crear admin si no existe con contraseña desde user-secrets. |
+| 2026-10-14 | Fuera de alcance: inventario funcional, reportes, producción, pruebas. |
