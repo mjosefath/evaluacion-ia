@@ -184,39 +184,89 @@
     }
   }
 
+  /*
+   * Nav toggle — mapa de iconos / aria (T05-07):
+   * - Narrow drawer cerrado: menu, aria-expanded=false, "Abrir menú de navegación"
+   * - Narrow drawer abierto: X, aria-expanded=true, "Cerrar menú de navegación"
+   * - Desktop expandido (textos): X, aria-expanded=true, "Colapsar menú lateral"
+   * - Desktop icon-rail (nav-collapsed): menu, aria-expanded=false, "Expandir menú lateral"
+   * Icono X visible cuando el panel está "expandido" (drawer open o sidebar ancho).
+   */
+  const NAV_COLLAPSED_KEY = "inventario.navCollapsed";
   const NAV_MQ = window.matchMedia("(max-width: 800px)");
   const navToggle = document.getElementById("app-nav-toggle");
   const navOverlay = document.getElementById("app-nav-overlay");
   const navSidebar = document.getElementById("app-sidebar");
-  const navIconOpen = navToggle?.querySelector(".app-nav-toggle-icon-open");
+  const navIconMenu = navToggle?.querySelector(".app-nav-toggle-icon-open");
   const navIconClose = navToggle?.querySelector(".app-nav-toggle-icon-close");
 
   function isNarrowNav() {
     return NAV_MQ.matches;
   }
 
-  function syncNavToggleUi(open) {
+  function readStoredNavCollapsed() {
+    try {
+      return localStorage.getItem(NAV_COLLAPSED_KEY) === "1";
+    } catch {
+      return false;
+    }
+  }
+
+  function writeStoredNavCollapsed(collapsed) {
+    try {
+      localStorage.setItem(NAV_COLLAPSED_KEY, collapsed ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function isNavCollapsed() {
+    return document.documentElement.classList.contains("nav-collapsed");
+  }
+
+  function isDrawerOpen() {
+    return document.body.classList.contains("nav-open");
+  }
+
+  /** Sync iconos + aria según breakpoint (drawer vs icon-rail). */
+  function syncNavToggleUi() {
     if (!navToggle) return;
-    navToggle.setAttribute("aria-expanded", open ? "true" : "false");
-    navToggle.setAttribute(
-      "aria-label",
-      open ? "Cerrar menú de navegación" : "Abrir menú de navegación"
-    );
-    if (navIconOpen instanceof HTMLElement) {
-      navIconOpen.hidden = open;
+
+    let expanded;
+    let label;
+
+    if (isNarrowNav()) {
+      expanded = isDrawerOpen();
+      label = expanded
+        ? "Cerrar menú de navegación"
+        : "Abrir menú de navegación";
+      if (navOverlay) {
+        navOverlay.hidden = !expanded;
+      }
+    } else {
+      expanded = !isNavCollapsed();
+      label = expanded ? "Colapsar menú lateral" : "Expandir menú lateral";
+      if (navOverlay) {
+        navOverlay.hidden = true;
+      }
+    }
+
+    navToggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    navToggle.setAttribute("aria-label", label);
+    navToggle.setAttribute("title", label);
+
+    if (navIconMenu instanceof HTMLElement) {
+      navIconMenu.hidden = expanded;
     }
     if (navIconClose instanceof HTMLElement) {
-      navIconClose.hidden = !open;
-    }
-    if (navOverlay) {
-      navOverlay.hidden = !open;
+      navIconClose.hidden = !expanded;
     }
   }
 
   function openNav() {
     if (!isNarrowNav()) return;
     document.body.classList.add("nav-open");
-    syncNavToggleUi(true);
+    syncNavToggleUi();
     const firstLink = navSidebar?.querySelector(".app-nav-link");
     if (firstLink instanceof HTMLElement) {
       firstLink.focus();
@@ -224,19 +274,51 @@
   }
 
   function closeNav() {
-    const wasOpen = document.body.classList.contains("nav-open");
+    const wasOpen = isDrawerOpen();
     document.body.classList.remove("nav-open");
-    syncNavToggleUi(false);
+    syncNavToggleUi();
     if (wasOpen && navToggle instanceof HTMLElement && isNarrowNav()) {
       navToggle.focus();
     }
   }
 
   function toggleNav() {
-    if (document.body.classList.contains("nav-open")) {
+    if (isDrawerOpen()) {
       closeNav();
     } else {
       openNav();
+    }
+  }
+
+  function setNavCollapsed(collapsed) {
+    if (isNarrowNav()) return;
+    const next = !!collapsed;
+    document.documentElement.classList.toggle("nav-collapsed", next);
+    writeStoredNavCollapsed(next);
+    syncNavToggleUi();
+  }
+
+  function toggleNavCollapsed() {
+    if (isNarrowNav()) return;
+    setNavCollapsed(!isNavCollapsed());
+  }
+
+  function onNavToggleClick(e) {
+    e.preventDefault();
+    if (isNarrowNav()) {
+      toggleNav();
+    } else {
+      toggleNavCollapsed();
+    }
+  }
+
+  function onNavViewportChange() {
+    if (isNarrowNav()) {
+      document.documentElement.classList.remove("nav-collapsed");
+      syncNavToggleUi();
+    } else {
+      closeNav();
+      setNavCollapsed(readStoredNavCollapsed());
     }
   }
 
@@ -311,6 +393,8 @@
     openNav,
     closeNav,
     toggleNav,
+    setNavCollapsed,
+    toggleNavCollapsed,
     getTheme,
     setTheme,
     toggleTheme
@@ -325,10 +409,7 @@
 
   syncThemeToggleUi(getTheme());
 
-  navToggle?.addEventListener("click", (e) => {
-    e.preventDefault();
-    toggleNav();
-  });
+  navToggle?.addEventListener("click", onNavToggleClick);
 
   navOverlay?.addEventListener("click", () => {
     closeNav();
@@ -344,7 +425,7 @@
 
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    if (!document.body.classList.contains("nav-open")) return;
+    if (!isDrawerOpen()) return;
     if (document.querySelector("dialog.action-modal[open], dialog.confirm-dialog[open]")) {
       return;
     }
@@ -352,19 +433,21 @@
     closeNav();
   });
 
-  function onNavViewportChange() {
-    if (!isNarrowNav()) {
-      closeNav();
-    }
-  }
-
   if (typeof NAV_MQ.addEventListener === "function") {
     NAV_MQ.addEventListener("change", onNavViewportChange);
   } else if (typeof NAV_MQ.addListener === "function") {
     NAV_MQ.addListener(onNavViewportChange);
   }
 
-  syncNavToggleUi(false);
+  // Estado inicial: narrow limpia icon-rail; desktop aplica storage (boot ya pudo setear clase).
+  if (isNarrowNav()) {
+    document.documentElement.classList.remove("nav-collapsed");
+    closeNav();
+  } else {
+    document.body.classList.remove("nav-open");
+    setNavCollapsed(readStoredNavCollapsed());
+  }
+  syncNavToggleUi();
 
   document.querySelectorAll("[data-confirm-open]").forEach((el) => {
     el.addEventListener("click", (e) => {
