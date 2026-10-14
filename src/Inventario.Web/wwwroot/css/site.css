@@ -380,6 +380,9 @@ span.form-error:empty {
 }
 
 .alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-8);
   padding: var(--spacing-12) var(--spacing-16);
   border-radius: var(--radius-cards);
   border: 1px solid var(--color-ash);
@@ -387,6 +390,24 @@ span.form-error:empty {
   color: var(--color-charcoal);
   font-size: var(--text-body);
   line-height: var(--leading-body);
+}
+
+.alert-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-content > :first-child {
+  margin-top: 0;
+}
+
+.alert-content > :last-child {
+  margin-bottom: 0;
+}
+
+.alert-error .alert-content .text-muted,
+.alert-error .alert-content .text-caption {
+  color: inherit;
 }
 
 .alert-success {

@@ -13,6 +13,15 @@
     @Html.AntiForgeryToken()
     <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
 
+    @if (!string.IsNullOrWhiteSpace(Model?.ErrorMessage))
+    {
+        <div class="alerts">
+            <div class="alert alert-error" role="alert">
+                <div class="alert-content">@Model.ErrorMessage</div>
+            </div>
+        </div>
+    }
+
     <div class="form-field">
         <label class="form-label" asp-for="UserName">Usuario</label>
         <input class="form-input"
@@ -32,16 +41,10 @@
         <span class="form-error" asp-validation-for="Password"></span>
     </div>
 
-    @if (!string.IsNullOrWhiteSpace(Model?.ErrorMessage))
-    {
-        <p class="form-error" role="alert">@Model.ErrorMessage</p>
-    }
-
     <div class="login-actions">
         <button type="submit" class="btn btn-primary">Entrar</button>
     </div>
 </form>
-
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

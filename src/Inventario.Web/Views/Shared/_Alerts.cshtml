@@ -9,15 +9,21 @@
     <div class="alerts" role="status" aria-live="polite">
         @if (!string.IsNullOrWhiteSpace(success))
         {
-            <div class="alert alert-success">@success</div>
+            <div class="alert alert-success">
+                <div class="alert-content">@success</div>
+            </div>
         }
         @if (!string.IsNullOrWhiteSpace(info))
         {
-            <div class="alert alert-info">@info</div>
+            <div class="alert alert-info">
+                <div class="alert-content">@info</div>
+            </div>
         }
         @if (!string.IsNullOrWhiteSpace(error))
         {
-            <div class="alert alert-error" role="alert">@error</div>
+            <div class="alert alert-error" role="alert">
+                <div class="alert-content">@error</div>
+            </div>
         }
     </div>
 }
