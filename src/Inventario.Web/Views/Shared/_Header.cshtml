@@ -1,0 +1,18 @@
+@{
+    // Placeholder hasta T01-12 (sesión real / DisplayName desde API).
+    var displayName = ViewData["DisplayName"] as string ?? "Usuario";
+}
+
+<header class="app-header">
+    <span class="app-header-user" id="header-display-name">@displayName</span>
+    <details class="app-header-menu">
+        <summary class="btn btn-outline" aria-haspopup="menu">Cuenta</summary>
+        <div class="app-header-menu-panel" role="menu">
+            <a role="menuitem" asp-controller="Account" asp-action="ChangePassword">Cambiar contraseña</a>
+            <form asp-controller="Account" asp-action="Logout" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" role="menuitem">Cerrar sesión</button>
+            </form>
+        </div>
+    </details>
+</header>

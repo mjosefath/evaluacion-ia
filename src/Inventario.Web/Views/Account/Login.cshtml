@@ -1,0 +1,45 @@
+@model Inventario.Web.Models.LoginViewModel
+@{
+    Layout = "_LoginLayout";
+    ViewData["Title"] = "Iniciar sesión";
+}
+
+<h1 class="login-brand">Inventario</h1>
+<p class="login-subtitle">Inicia sesión para continuar</p>
+
+@* Formulario listo para cablear contra ApiClient en T01-12. *@
+<form asp-controller="Account" asp-action="Login" method="post" novalidate>
+    @Html.AntiForgeryToken()
+
+    <div class="form-field">
+        <label class="form-label" asp-for="UserName">Usuario</label>
+        <input class="form-input"
+               asp-for="UserName"
+               autocomplete="username"
+               autofocus
+               aria-required="true" />
+        <span class="form-error" asp-validation-for="UserName"></span>
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" asp-for="Password">Contraseña</label>
+        <input class="form-input"
+               asp-for="Password"
+               autocomplete="current-password"
+               aria-required="true" />
+        <span class="form-error" asp-validation-for="Password"></span>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model?.ErrorMessage))
+    {
+        <p class="form-error" role="alert">@Model.ErrorMessage</p>
+    }
+
+    <div class="login-actions">
+        <button type="submit" class="btn btn-primary">Entrar</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

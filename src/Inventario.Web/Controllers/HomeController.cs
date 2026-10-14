@@ -1,22 +1,22 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using Inventario.Web.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Inventario.Web.Controllers;
 
-public class HomeController : Controller
+public sealed class HomeController : Controller
 {
+    // AllowAnonymous temporal hasta T01-12 (cookie + [Authorize]).
+    [AllowAnonymous]
     public IActionResult Index()
     {
-        return View();
-    }
-
-    public IActionResult Privacy()
-    {
+        ViewData["Title"] = "Inicio";
         return View();
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    [AllowAnonymous]
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
