@@ -119,6 +119,12 @@ summary:focus-visible {
   fill: none;
 }
 
+/* [hidden] debe ganar a .icon { display: block } (hamburguesa + theme toggle) */
+.app-nav-toggle .icon[hidden],
+.theme-toggle .icon[hidden] {
+  display: none !important;
+}
+
 .app-nav-link:hover {
   background: var(--color-canvas-white);
   color: var(--color-slate);
@@ -604,11 +610,6 @@ span.form-error:empty {
 }
 
 /* —— Theme toggle —— */
-.theme-toggle .theme-toggle-icon-sun[hidden],
-.theme-toggle .theme-toggle-icon-moon[hidden] {
-  display: none;
-}
-
 .login-theme-bar {
   position: absolute;
   top: var(--spacing-16);
@@ -668,11 +669,6 @@ span.form-error:empty {
 
   .app-nav-toggle {
     display: inline-flex;
-  }
-
-  .app-nav-toggle .app-nav-toggle-icon-close[hidden],
-  .app-nav-toggle .app-nav-toggle-icon-open[hidden] {
-    display: none;
   }
 
   .app-sidebar {
