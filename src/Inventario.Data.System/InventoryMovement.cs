@@ -1,9 +1,11 @@
+using Inventario.Data.System.Audit;
+
 namespace Inventario.Data.System;
 
 /// <summary>
 /// Movimiento de inventario (inmutable). Quantity con signo = efecto sobre existencia.
 /// </summary>
-public sealed class InventoryMovement
+public sealed class InventoryMovement : IImmutableAudited
 {
     public long Id { get; set; }
 

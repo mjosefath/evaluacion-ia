@@ -1,6 +1,8 @@
+using Inventario.Data.System.Audit;
+
 namespace Inventario.Data.System;
 
-public sealed class Permission
+public sealed class Permission : IMutableAudited
 {
     public int Id { get; set; }
 

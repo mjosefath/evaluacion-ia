@@ -1,9 +1,11 @@
+using Inventario.Data.System.Audit;
+
 namespace Inventario.Data.System;
 
 /// <summary>
 /// Producto (mutable). Existencia = <see cref="ProductStock"/> / último movimiento; no hay columna Stock.
 /// </summary>
-public sealed class Product
+public sealed class Product : IMutableAudited
 {
     public int Id { get; set; }
 

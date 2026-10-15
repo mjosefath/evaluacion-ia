@@ -13,6 +13,7 @@ public sealed class JwtTokenService(IOptions<JwtOptions> jwtOptions) : IJwtToken
 {
     public (string AccessToken, DateTimeOffset ExpiresAtUtc) CreateAccessToken(
         IdentityUser user,
+        int userProfileId,
         IEnumerable<string> roles,
         IEnumerable<string> permissions)
     {
@@ -29,7 +30,9 @@ public sealed class JwtTokenService(IOptions<JwtOptions> jwtOptions) : IJwtToken
             new(JwtRegisteredClaimNames.Sub, user.Id),
             new(JwtRegisteredClaimNames.UniqueName, user.UserName ?? user.Id),
             new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Name, user.UserName ?? user.Id)
+            new(ClaimTypes.Name, user.UserName ?? user.Id),
+            // E5 / ADR-009: UserProfiles.Id para CreatedBy/UpdatedBy sin lookup extra.
+            new(AuthClaimTypes.UserProfileId, userProfileId.ToString())
         };
 
         foreach (var role in roles.Distinct(StringComparer.Ordinal))

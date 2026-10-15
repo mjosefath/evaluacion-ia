@@ -65,6 +65,14 @@ public sealed class AuthSessionService(IHttpContextAccessor httpContextAccessor)
             {
                 claims.Add(new Claim(JwtRegisteredClaimNames.UniqueName, uniqueName));
             }
+
+            // Mismo valor que AuthClaimTypes.UserProfileId en Application (sin ref. a Application).
+            var profileId = jwt.Claims.FirstOrDefault(c =>
+                c.Type == AuthTokenKeys.UserProfileIdClaim)?.Value;
+            if (!string.IsNullOrWhiteSpace(profileId))
+            {
+                claims.Add(new Claim(AuthTokenKeys.UserProfileIdClaim, profileId));
+            }
         }
         catch (ArgumentException)
         {

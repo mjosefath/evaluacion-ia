@@ -48,6 +48,14 @@ El análisis 02 define un molde único de columnas y reglas (E1–E11) para toda
 | MovementTypes | Mutable; `Code` varchar(10) único (`ENTRADA` / `SALIDA` / `AJUSTE`); `Name` nvarchar(30); seed de esos 3; `CreatedBy` NULL. |
 | RecordStatuses | Sin cambios (no se redefine). |
 
+## Adenda (2026-10-14) — ICurrentUser y claim profile_id (T02-09 / E5)
+
+| Tema | Decisión |
+|------|----------|
+| Sesión API | `ICurrentUser` (scoped): Identity `UserId` + `UserProfileId` (claim o lookup de perfil activo). |
+| JWT | Claim `profile_id` = `UserProfiles.Id` (int). La Web lo copia a la cookie al establecer sesión. |
+| Auditoría | `AuditStamp.ApplyCreate` / `ApplyUpdate` sobre `IMutableAudited` / `IImmutableAudited`; la Web no envía Created*/Updated*. |
+
 ## Adenda (2026-10-14) — Products, InventoryMovements, vw_ProductStock (T02-07)
 
 | Pieza | Notas |

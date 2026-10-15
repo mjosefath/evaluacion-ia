@@ -1,10 +1,12 @@
+using Inventario.Data.System.Audit;
+
 namespace Inventario.Data.System;
 
 /// <summary>
 /// Asignación rol Identity (por nombre) → permiso. Sin FK a BD Identity.
 /// Revocar = StatusId = Inactivo (E1).
 /// </summary>
-public sealed class RolePermission
+public sealed class RolePermission : IMutableAudited
 {
     public int Id { get; set; }
 

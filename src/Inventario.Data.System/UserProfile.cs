@@ -1,9 +1,11 @@
+using Inventario.Data.System.Audit;
+
 namespace Inventario.Data.System;
 
 /// <summary>
 /// Perfil en BD Sistema. Vínculo lógico a Identity por IdentityUserId (sin FK cross-database).
 /// </summary>
-public sealed class UserProfile
+public sealed class UserProfile : IMutableAudited
 {
     public int Id { get; set; }
 

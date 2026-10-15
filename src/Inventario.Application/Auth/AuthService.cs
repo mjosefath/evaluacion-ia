@@ -87,7 +87,7 @@ public sealed class AuthService(
                 MessageCatalog.AuthInactiveProfile);
         }
 
-        var tokens = await IssueTokensAsync(user, cancellationToken);
+        var tokens = await IssueTokensAsync(user, profile.Id, cancellationToken);
 
         await accessLogs.WriteAsync(
             AccessLogEventTypes.LoginSuccess,
@@ -153,7 +153,11 @@ public sealed class AuthService(
 
         var roles = await userManager.GetRolesAsync(user);
         var permissionCodes = await permissions.GetPermissionCodesForRolesAsync(roles, cancellationToken);
-        var (accessToken, accessExpires) = jwtTokens.CreateAccessToken(user, roles, permissionCodes);
+        var (accessToken, accessExpires) = jwtTokens.CreateAccessToken(
+            user,
+            profile.Id,
+            roles,
+            permissionCodes);
 
         await accessLogs.WriteAsync(
             AccessLogEventTypes.TokenRefresh,
@@ -287,11 +291,16 @@ public sealed class AuthService(
 
     private async Task<AuthTokenResponse> IssueTokensAsync(
         IdentityUser user,
+        int userProfileId,
         CancellationToken cancellationToken)
     {
         var roles = await userManager.GetRolesAsync(user);
         var permissionCodes = await permissions.GetPermissionCodesForRolesAsync(roles, cancellationToken);
-        var (accessToken, accessExpires) = jwtTokens.CreateAccessToken(user, roles, permissionCodes);
+        var (accessToken, accessExpires) = jwtTokens.CreateAccessToken(
+            user,
+            userProfileId,
+            roles,
+            permissionCodes);
         var (refreshPlain, refreshEntity) = await refreshTokens.IssueAsync(user.Id, cancellationToken);
 
         return new AuthTokenResponse(

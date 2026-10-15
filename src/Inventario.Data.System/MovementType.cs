@@ -1,9 +1,11 @@
+using Inventario.Data.System.Audit;
+
 namespace Inventario.Data.System;
 
 /// <summary>
 /// Catálogo de tipos de movimiento (mutable). Codes: ENTRADA, SALIDA, AJUSTE.
 /// </summary>
-public sealed class MovementType
+public sealed class MovementType : IMutableAudited
 {
     public int Id { get; set; }
 

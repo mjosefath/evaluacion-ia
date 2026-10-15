@@ -1,9 +1,11 @@
+using Inventario.Data.System.Audit;
+
 namespace Inventario.Data.System;
 
 /// <summary>
 /// Bitácora de accesos (inmutable). EventType: LoginSuccess, LoginFailure, Lockout, Logout, TokenRefresh, PasswordChanged.
 /// </summary>
-public sealed class AccessLog
+public sealed class AccessLog : IImmutableAudited
 {
     public long Id { get; set; }
 

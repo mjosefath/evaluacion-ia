@@ -65,6 +65,7 @@ try
 
     builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
     builder.Services.Configure<SeedAdminOptions>(builder.Configuration.GetSection(SeedAdminOptions.SectionName));
+    builder.Services.AddHttpContextAccessor();
     builder.Services.AddInventarioApplication();
 
     builder.Services

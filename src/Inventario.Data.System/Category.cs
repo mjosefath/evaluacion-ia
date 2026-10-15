@@ -1,9 +1,11 @@
+using Inventario.Data.System.Audit;
+
 namespace Inventario.Data.System;
 
 /// <summary>
 /// Catálogo de categorías (mutable). Seed: Electrónica, Papelería, Limpieza.
 /// </summary>
-public sealed class Category
+public sealed class Category : IMutableAudited
 {
     public int Id { get; set; }
 
