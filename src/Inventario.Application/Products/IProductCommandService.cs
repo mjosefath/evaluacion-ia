@@ -13,4 +13,14 @@ public interface IProductCommandService
         int id,
         UpdateProductRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<Result<ProductDetailDto>> DeactivateAsync(
+        int id,
+        ProductStatusChangeRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<ProductDetailDto>> ActivateAsync(
+        int id,
+        ProductStatusChangeRequest request,
+        CancellationToken cancellationToken = default);
 }

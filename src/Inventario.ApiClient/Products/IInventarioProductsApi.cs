@@ -21,4 +21,14 @@ public interface IInventarioProductsApi
         int id,
         UpdateProductRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ProductDetailDto> DeactivateAsync(
+        int id,
+        ProductStatusChangeRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<ProductDetailDto> ActivateAsync(
+        int id,
+        ProductStatusChangeRequest request,
+        CancellationToken cancellationToken = default);
 }

@@ -71,4 +71,38 @@ public sealed class ProductsController(
         var result = await productCommands.UpdateAsync(id, request, cancellationToken);
         return ResultHttpMapper.ToActionResult(this, result);
     }
+
+    [HttpPost("{id:int}/deactivate")]
+    [Authorize(Policy = PermissionCodes.ProductosActivar)]
+    [ProducesResponseType(typeof(ProductDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Deactivate(
+        int id,
+        [FromBody] ProductStatusChangeRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await productCommands.DeactivateAsync(id, request, cancellationToken);
+        return ResultHttpMapper.ToActionResult(this, result);
+    }
+
+    [HttpPost("{id:int}/activate")]
+    [Authorize(Policy = PermissionCodes.ProductosActivar)]
+    [ProducesResponseType(typeof(ProductDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Activate(
+        int id,
+        [FromBody] ProductStatusChangeRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await productCommands.ActivateAsync(id, request, cancellationToken);
+        return ResultHttpMapper.ToActionResult(this, result);
+    }
 }

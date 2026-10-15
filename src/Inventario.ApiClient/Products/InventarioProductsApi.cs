@@ -51,6 +51,32 @@ public sealed class InventarioProductsApi(HttpClient httpClient) : IInventarioPr
         return await ReadSuccessAsync<ProductDetailDto>(response, cancellationToken);
     }
 
+    public async Task<ProductDetailDto> DeactivateAsync(
+        int id,
+        ProductStatusChangeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await httpClient.PostAsJsonAsync(
+            $"api/products/{id}/deactivate",
+            request,
+            InventarioJson.Options,
+            cancellationToken);
+        return await ReadSuccessAsync<ProductDetailDto>(response, cancellationToken);
+    }
+
+    public async Task<ProductDetailDto> ActivateAsync(
+        int id,
+        ProductStatusChangeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await httpClient.PostAsJsonAsync(
+            $"api/products/{id}/activate",
+            request,
+            InventarioJson.Options,
+            cancellationToken);
+        return await ReadSuccessAsync<ProductDetailDto>(response, cancellationToken);
+    }
+
     private static string BuildQuery(ProductListQuery query)
     {
         var parts = new List<string>

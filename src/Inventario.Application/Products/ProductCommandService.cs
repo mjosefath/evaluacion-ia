@@ -140,6 +140,107 @@ public sealed class ProductCommandService(
         return await productQueries.GetByIdAsync(entity.Id, cancellationToken);
     }
 
+    public Task<Result<ProductDetailDto>> DeactivateAsync(
+        int id,
+        ProductStatusChangeRequest request,
+        CancellationToken cancellationToken = default) =>
+        ChangeStatusAsync(id, request, RecordStatusIds.Inactive, cancellationToken);
+
+    public Task<Result<ProductDetailDto>> ActivateAsync(
+        int id,
+        ProductStatusChangeRequest request,
+        CancellationToken cancellationToken = default) =>
+        ChangeStatusAsync(id, request, RecordStatusIds.Active, cancellationToken);
+
+    private async Task<Result<ProductDetailDto>> ChangeStatusAsync(
+        int id,
+        ProductStatusChangeRequest request,
+        byte targetStatusId,
+        CancellationToken cancellationToken)
+    {
+        if (id < 1)
+        {
+            return Result<ProductDetailDto>.Failure(ErrorCodes.NotFound, MessageCatalog.NotFound);
+        }
+
+        var profileId = await currentUser.ResolveUserProfileIdAsync(cancellationToken);
+        if (profileId is null)
+        {
+            return Result<ProductDetailDto>.Failure(ErrorCodes.Forbidden, MessageCatalog.Forbidden);
+        }
+
+        if (!TryParseRowVersion(request.RowVersion, out var rowVersion, out var rowVersionError))
+        {
+            return rowVersionError!;
+        }
+
+        var entity = await systemDb.Products.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+        if (entity is null)
+        {
+            return Result<ProductDetailDto>.Failure(ErrorCodes.NotFound, MessageCatalog.NotFound);
+        }
+
+        if (targetStatusId == RecordStatusIds.Inactive && entity.StatusId != RecordStatusIds.Inactive)
+        {
+            var stock = await systemDb.ProductStocks.AsNoTracking()
+                .Where(s => s.ProductId == id)
+                .Select(s => s.Stock)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (stock != 0)
+            {
+                return Result<ProductDetailDto>.BusinessRule(
+                    BusinessRuleCodes.ProductHasStock,
+                    $"No se puede desactivar: el producto tiene {stock} unidades. Llévalo a 0 con un ajuste.");
+            }
+        }
+
+        if (entity.StatusId == targetStatusId)
+        {
+            return await productQueries.GetByIdAsync(entity.Id, cancellationToken);
+        }
+
+        systemDb.Entry(entity).Property(p => p.RowVersion).OriginalValue = rowVersion;
+        entity.StatusId = targetStatusId;
+        AuditStamp.ApplyUpdate(entity, profileId.Value);
+
+        try
+        {
+            await systemDb.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Result<ProductDetailDto>.Failure(
+                ErrorCodes.ConflictConcurrency,
+                ConcurrencyMessage);
+        }
+
+        return await productQueries.GetByIdAsync(entity.Id, cancellationToken);
+    }
+
+    private static bool TryParseRowVersion(
+        string? value,
+        out byte[] rowVersion,
+        out Result<ProductDetailDto>? error)
+    {
+        try
+        {
+            rowVersion = Convert.FromBase64String(value ?? string.Empty);
+            error = null;
+            return true;
+        }
+        catch (FormatException)
+        {
+            rowVersion = [];
+            error = Result<ProductDetailDto>.Validation(
+                new Dictionary<string, string[]>(StringComparer.Ordinal)
+                {
+                    ["rowVersion"] = [ProductValidationMessages.RowVersionRequired]
+                });
+            return false;
+        }
+    }
+
     private async Task<Result<ProductDetailDto>?> ValidateActiveCategoryAsync(
         int categoryId,
         CancellationToken cancellationToken)

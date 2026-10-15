@@ -1190,6 +1190,13 @@ span.form-error:empty {
   width: 1%;
 }
 
+.data-table__action-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--spacing-4);
+}
+
 .btn-sm {
   min-height: 28px;
   padding: var(--spacing-4) var(--spacing-8);

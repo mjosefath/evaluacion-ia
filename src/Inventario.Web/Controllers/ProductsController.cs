@@ -179,6 +179,121 @@ public sealed class ProductsController(
         }
     }
 
+    [HttpPost("{id:int}/deactivate")]
+    [Authorize(Policy = PermissionCodes.ProductosActivar)]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> Deactivate(
+        int id,
+        ProductStatusChangeRequest request,
+        CancellationToken cancellationToken) =>
+        ChangeStatusAsync(
+            id,
+            request,
+            deactivate: true,
+            successMessage: "Producto desactivado.",
+            cancellationToken);
+
+    [HttpPost("{id:int}/activate")]
+    [Authorize(Policy = PermissionCodes.ProductosActivar)]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> Activate(
+        int id,
+        ProductStatusChangeRequest request,
+        CancellationToken cancellationToken) =>
+        ChangeStatusAsync(
+            id,
+            request,
+            deactivate: false,
+            successMessage: "Producto activado.",
+            cancellationToken);
+
+    private async Task<IActionResult> ChangeStatusAsync(
+        int id,
+        ProductStatusChangeRequest request,
+        bool deactivate,
+        string successMessage,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return JsonNotifyError(ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .FirstOrDefault(m => !string.IsNullOrWhiteSpace(m))
+                ?? WebUiMessages.Unexpected);
+        }
+
+        try
+        {
+            if (deactivate)
+            {
+                await productsApi.DeactivateAsync(id, request, cancellationToken);
+            }
+            else
+            {
+                await productsApi.ActivateAsync(id, request, cancellationToken);
+            }
+
+            return Json(new
+            {
+                refresh = true,
+                notify = new { type = "success", message = successMessage }
+            });
+        }
+        catch (InventarioApiException ex)
+        {
+            return await HandleStatusAjaxApiErrorAsync(ex, cancellationToken);
+        }
+        catch (HttpRequestException)
+        {
+            return JsonNotifyError(WebUiMessages.ConnectionFailed);
+        }
+        catch (TaskCanceledException)
+        {
+            return JsonNotifyError(WebUiMessages.Timeout);
+        }
+    }
+
+    private async Task<IActionResult> HandleStatusAjaxApiErrorAsync(
+        InventarioApiException ex,
+        CancellationToken cancellationToken)
+    {
+        var translation = ApiErrorTranslator.Translate(ex.Error, ApiErrorSurface.Form);
+
+        switch (translation.Disposition)
+        {
+            case ApiErrorDisposition.RedirectLoginSessionExpired:
+                await authSession.SignOutAsync(cancellationToken);
+                return Json(new
+                {
+                    redirectUrl = Url.Action("Login", "Account", new { sessionExpired = true })
+                });
+
+            case ApiErrorDisposition.RedirectAccessDenied:
+                return Json(new { redirectUrl = Url.Action("AccessDenied", "Account") });
+
+            default:
+                var message = translation.Message
+                              ?? ex.Error.Detail
+                              ?? WebUiMessages.Unexpected;
+                if (translation.FieldErrors is { Count: > 0 })
+                {
+                    message = translation.FieldErrors.Values
+                                  .SelectMany(v => v)
+                                  .FirstOrDefault(m => !string.IsNullOrWhiteSpace(m))
+                              ?? message;
+                }
+
+                return JsonNotifyError(message);
+        }
+    }
+
+    private static IActionResult JsonNotifyError(string message) =>
+        new JsonResult(new { notify = new { type = "error", message } })
+        {
+            StatusCode = StatusCodes.Status400BadRequest
+        };
+
     private async Task<IActionResult> HandleProductFormApiErrorAsync(
         string partialName,
         object model,

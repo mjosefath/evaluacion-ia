@@ -7,6 +7,8 @@
     var result = Model.Result;
     var canCreate = PermissionClaims.Has(User, PermissionCodes.ProductosCrear);
     var canEdit = PermissionClaims.Has(User, PermissionCodes.ProductosEditar);
+    var canActivate = PermissionClaims.Has(User, PermissionCodes.ProductosActivar);
+    var showActions = canEdit || canActivate;
     var filters = await Html.PartialAsync("Products/_ProductFilters", Model);
     var filterBar = new FilterBarModel
     {
@@ -109,7 +111,7 @@
                             <th class="data-table__num"><a class="data-table__sort" href="@SortUrl("stock")">Existencia@(Ind("stock"))</a></th>
                             <th>Estado stock</th>
                             <th>Estatus</th>
-                            @if (canEdit)
+                            @if (showActions)
                             {
                                 <th class="data-table__actions"><span class="visually-hidden">Acciones</span></th>
                             }
@@ -118,6 +120,8 @@
                     <tbody>
                     @foreach (var item in result.Items)
                     {
+                        var deactivateFormId = $"product-deactivate-{item.Id}";
+                        var activateFormId = $"product-activate-{item.Id}";
                         <tr>
                             <td>@item.Code</td>
                             <td>@item.Name</td>
@@ -135,16 +139,67 @@
                                     @item.StatusName
                                 </span>
                             </td>
-                            @if (canEdit)
+                            @if (showActions)
                             {
                                 <td class="data-table__actions">
-                                    <button type="button"
-                                            class="btn btn-ghost btn-sm"
-                                            data-modal-open="app-action-modal"
-                                            data-modal-title="Editar producto"
-                                            data-modal-url="@Url.Action("EditForm", "Products", new { id = item.Id })">
-                                        Editar
-                                    </button>
+                                    <div class="data-table__action-group">
+                                        @if (canEdit)
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-ghost btn-sm"
+                                                    data-modal-open="app-action-modal"
+                                                    data-modal-title="Editar producto"
+                                                    data-modal-url="@Url.Action("EditForm", "Products", new { id = item.Id })">
+                                                Editar
+                                            </button>
+                                        }
+                                        @if (canActivate && item.StatusId == 1)
+                                        {
+                                            <form id="@deactivateFormId"
+                                                  class="visually-hidden"
+                                                  method="post"
+                                                  asp-controller="Products"
+                                                  asp-action="Deactivate"
+                                                  asp-route-id="@item.Id"
+                                                  data-confirm-ajax-form>
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="RowVersion" value="@item.RowVersion" />
+                                            </form>
+                                            <button type="button"
+                                                    class="btn btn-ghost btn-sm"
+                                                    data-confirm-open
+                                                    data-confirm-title="Desactivar producto"
+                                                    data-confirm-message="¿Desactivar «@item.Name»? No podrá usarse en movimientos hasta reactivarlo."
+                                                    data-confirm-accept="Desactivar"
+                                                    data-confirm-tone="danger"
+                                                    data-confirm-action="#@deactivateFormId">
+                                                Desactivar
+                                            </button>
+                                        }
+                                        @if (canActivate && item.StatusId == 2)
+                                        {
+                                            <form id="@activateFormId"
+                                                  class="visually-hidden"
+                                                  method="post"
+                                                  asp-controller="Products"
+                                                  asp-action="Activate"
+                                                  asp-route-id="@item.Id"
+                                                  data-confirm-ajax-form>
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="RowVersion" value="@item.RowVersion" />
+                                            </form>
+                                            <button type="button"
+                                                    class="btn btn-ghost btn-sm"
+                                                    data-confirm-open
+                                                    data-confirm-title="Activar producto"
+                                                    data-confirm-message="¿Reactivar «@item.Name»?"
+                                                    data-confirm-accept="Activar"
+                                                    data-confirm-tone="neutral"
+                                                    data-confirm-action="#@activateFormId">
+                                                Activar
+                                            </button>
+                                        }
+                                    </div>
                                 </td>
                             }
                         </tr>

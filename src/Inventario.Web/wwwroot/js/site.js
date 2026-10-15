@@ -197,6 +197,51 @@
     resolve?.(!!accepted);
   }
 
+  async function postConfirmForm(form) {
+    window.InventarioUi.showLoading(true);
+    try {
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          Accept: "application/json"
+        },
+        credentials: "same-origin"
+      });
+
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const data = await response.json();
+        if (data?.notify && typeof data.notify.message === "string") {
+          notify(data.notify.type || "info", data.notify.message);
+        }
+        if (data && typeof data.redirectUrl === "string" && data.redirectUrl) {
+          window.location.assign(data.redirectUrl);
+          return;
+        }
+        if (data?.refresh === true) {
+          window.location.reload();
+        }
+        return;
+      }
+
+      if (!response.ok) {
+        notify(
+          "error",
+          uiMessage("data-msg-modal-failed", "No se pudo completar la acción. Intenta de nuevo.")
+        );
+      }
+    } catch {
+      notify(
+        "error",
+        uiMessage("data-msg-connection", "No hay conexión con el servidor. Comprueba la red e inténtalo de nuevo.")
+      );
+    } finally {
+      window.InventarioUi.hideLoading();
+    }
+  }
+
   async function runConfirmFromTrigger(trigger) {
     const accepted = await confirm({
       title: trigger.getAttribute("data-confirm-title") || undefined,
@@ -211,6 +256,10 @@
     if (action) {
       const target = document.querySelector(action);
       if (target instanceof HTMLFormElement) {
+        if (target.hasAttribute("data-confirm-ajax-form")) {
+          await postConfirmForm(target);
+          return;
+        }
         target.requestSubmit();
         return;
       }
