@@ -5,6 +5,7 @@ using Inventario.Api.Options;
 using Inventario.Application;
 using Inventario.Application.Options;
 using Inventario.Application.Results;
+using Inventario.Contracts.Auth;
 using Inventario.Data.Identity;
 using Inventario.Data.System;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -56,6 +57,8 @@ try
             options.Lockout.AllowedForNewUsers = true;
             options.Lockout.MaxFailedAccessAttempts = lockoutMax;
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(lockoutMinutes);
+            // Alineado a ChangePasswordRequest / AuthValidationMessages (V2); resto = defaults Identity.
+            options.Password.RequiredLength = AuthValidationMessages.PasswordMinLength;
         })
         .AddEntityFrameworkStores<InventarioIdentityDbContext>()
         .AddDefaultTokenProviders();

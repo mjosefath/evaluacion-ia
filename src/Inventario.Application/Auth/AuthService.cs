@@ -204,12 +204,7 @@ public sealed class AuthService(
         string? userAgent,
         CancellationToken cancellationToken = default)
     {
-        var fieldErrors = ValidateChangePassword(request);
-        if (fieldErrors is not null)
-        {
-            return Result<object?>.Validation(fieldErrors);
-        }
-
+        // Formato (required/min length): DTO Contracts + ModelState API (V2). Aquí solo Identity.
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
         {
@@ -317,23 +312,6 @@ public sealed class AuthService(
         if (string.IsNullOrWhiteSpace(request.Password))
         {
             errors["password"] = [MessageCatalog.FieldPasswordRequired];
-        }
-
-        return errors.Count == 0 ? null : errors;
-    }
-
-    private static IReadOnlyDictionary<string, string[]>? ValidateChangePassword(ChangePasswordRequest request)
-    {
-        var errors = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
-
-        if (string.IsNullOrWhiteSpace(request.CurrentPassword))
-        {
-            errors["currentPassword"] = [MessageCatalog.FieldCurrentPasswordRequired];
-        }
-
-        if (string.IsNullOrWhiteSpace(request.NewPassword))
-        {
-            errors["newPassword"] = [MessageCatalog.FieldNewPasswordRequired];
         }
 
         return errors.Count == 0 ? null : errors;

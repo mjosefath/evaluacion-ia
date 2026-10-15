@@ -116,9 +116,7 @@ public sealed class AccountController(
 
         try
         {
-            await authApi.ChangePasswordAsync(
-                new ChangePasswordRequest(model.CurrentPassword, model.NewPassword),
-                cancellationToken);
+            await authApi.ChangePasswordAsync(model.ToRequest(), cancellationToken);
 
             await authSession.SignOutAsync(cancellationToken);
             FlashMessages.SetSuccess(TempData, "Contraseña actualizada. Inicia sesión de nuevo.");

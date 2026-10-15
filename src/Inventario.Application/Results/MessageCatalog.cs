@@ -22,8 +22,7 @@ public static class MessageCatalog
     public const string FieldUserNameRequired = "El usuario es obligatorio.";
     public const string FieldPasswordRequired = "La contraseña es obligatoria.";
     public const string FieldRefreshTokenRequired = "El refresh token es obligatorio.";
-    public const string FieldCurrentPasswordRequired = "La contraseña actual es obligatoria.";
-    public const string FieldNewPasswordRequired = "La contraseña nueva es obligatoria.";
+    // Change password formato: AuthValidationMessages en Contracts (V2 / T03-11).
 
     public static string ForCode(string code, string? rule = null) =>
         code switch

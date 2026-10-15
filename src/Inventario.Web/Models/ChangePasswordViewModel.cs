@@ -1,22 +1,30 @@
 using System.ComponentModel.DataAnnotations;
+using Inventario.Contracts.Auth;
 
 namespace Inventario.Web.Models;
 
-public sealed class ChangePasswordViewModel
+/// <summary>
+/// Formulario Web: hereda anotaciones de <see cref="ChangePasswordRequest"/> (V2 / A10).
+/// ConfirmPassword solo en Web (no viaja a la API).
+/// </summary>
+public sealed class ChangePasswordViewModel : ChangePasswordRequest
 {
-    [Required(ErrorMessage = "La contraseña actual es obligatoria.")]
-    [DataType(DataType.Password)]
-    [Display(Name = "Contraseña actual")]
-    public string CurrentPassword { get; set; } = string.Empty;
+    private string _confirmPassword = string.Empty;
 
-    [Required(ErrorMessage = "La contraseña nueva es obligatoria.")]
-    [DataType(DataType.Password)]
-    [Display(Name = "Contraseña nueva")]
-    public string NewPassword { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "La confirmación es obligatoria.")]
+    [Required(ErrorMessage = AuthValidationMessages.ConfirmPasswordRequired)]
     [DataType(DataType.Password)]
     [Display(Name = "Confirmar contraseña")]
-    [Compare(nameof(NewPassword), ErrorMessage = "Las contraseñas no coinciden.")]
-    public string ConfirmPassword { get; set; } = string.Empty;
+    [Compare(nameof(NewPassword), ErrorMessage = AuthValidationMessages.ConfirmPasswordMismatch)]
+    public string ConfirmPassword
+    {
+        get => _confirmPassword;
+        set => _confirmPassword = (value ?? string.Empty).Trim();
+    }
+
+    public ChangePasswordRequest ToRequest() =>
+        new()
+        {
+            CurrentPassword = CurrentPassword,
+            NewPassword = NewPassword
+        };
 }
