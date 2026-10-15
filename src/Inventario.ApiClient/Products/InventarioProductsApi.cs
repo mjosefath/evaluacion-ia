@@ -77,6 +77,35 @@ public sealed class InventarioProductsApi(HttpClient httpClient) : IInventarioPr
         return await ReadSuccessAsync<ProductDetailDto>(response, cancellationToken);
     }
 
+    public async Task<PagedResult<ProductLookupItemDto>> LookupAsync(
+        ProductLookupQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        var parts = new List<string>
+        {
+            $"page={query.Page}",
+            $"pageSize={query.PageSize}"
+        };
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            parts.Add($"search={Uri.EscapeDataString(query.Search.Trim())}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Sort))
+        {
+            parts.Add($"sort={Uri.EscapeDataString(query.Sort.Trim())}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Dir))
+        {
+            parts.Add($"dir={Uri.EscapeDataString(query.Dir.Trim())}");
+        }
+
+        var qs = string.Join('&', parts);
+        using var response = await httpClient.GetAsync($"api/products/lookup?{qs}", cancellationToken);
+        return await ReadSuccessAsync<PagedResult<ProductLookupItemDto>>(response, cancellationToken);
+    }
+
     private static string BuildQuery(ProductListQuery query)
     {
         var parts = new List<string>

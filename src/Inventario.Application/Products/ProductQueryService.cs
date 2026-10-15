@@ -105,6 +105,44 @@ public sealed class ProductQueryService(InventarioSystemDbContext systemDb) : IP
                 Convert.ToBase64String(row.RowVersion)));
     }
 
+    public async Task<Result<PagedResult<ProductLookupItemDto>>> LookupAsync(
+        ProductLookupQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        var (page, pageSize) = Paging.Normalize(query.Page, query.PageSize);
+        var parameters = new[]
+        {
+            StoredProcedureExecutor.In("@Search", NullIfWhiteSpace(query.Search), SqlDbType.NVarChar),
+            StoredProcedureExecutor.In("@Page", page, SqlDbType.Int),
+            StoredProcedureExecutor.In("@PageSize", pageSize, SqlDbType.Int),
+            StoredProcedureExecutor.In("@SortColumn", NullIfWhiteSpace(query.Sort), SqlDbType.NVarChar),
+            StoredProcedureExecutor.In("@SortDirection", NullIfWhiteSpace(query.Dir), SqlDbType.NVarChar)
+        };
+
+        var (items, totalRows) = await StoredProcedureExecutor.QueryPagedAsync(
+            systemDb,
+            "usp_Products_Lookup",
+            parameters,
+            MapLookupItem,
+            cancellationToken);
+
+        return Result<PagedResult<ProductLookupItemDto>>.Success(
+            new PagedResult<ProductLookupItemDto>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalRows = totalRows
+            });
+    }
+
+    private static ProductLookupItemDto MapLookupItem(DbDataReader r) =>
+        new(
+            r.GetInt32(r.GetOrdinal("Id")),
+            r.GetString(r.GetOrdinal("Code")),
+            r.GetString(r.GetOrdinal("Name")),
+            r.GetInt32(r.GetOrdinal("Stock")));
+
     private static ProductListItemDto MapListItem(DbDataReader r)
     {
         var rowVersion = (byte[])r["RowVersion"];

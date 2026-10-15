@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Inventario.Application.Auth;
 using Inventario.Application.Services;
+using Inventario.Contracts.Security;
 using Inventario.Data.System;
 using Microsoft.AspNetCore.Http;
 
@@ -76,6 +77,10 @@ public sealed class CurrentUser(
         _resolved = true;
         return _resolvedProfileId;
     }
+
+    public bool HasPermission(string permissionCode) =>
+        !string.IsNullOrWhiteSpace(permissionCode)
+        && Principal?.HasClaim(PermissionCodes.PermissionClaimType, permissionCode) == true;
 
     private int? ReadProfileIdClaim()
     {

@@ -17,6 +17,16 @@ public static class PermissionCodes
 
     public const string PermissionClaimType = "permission";
 
+    /// <summary>Cualquiera de movimientos.entrada|salida|ajuste (lookup de productos).</summary>
+    public const string MovimientosAny = "movimientos.any";
+
+    public static readonly string[] MovimientosAll =
+    [
+        MovimientosEntrada,
+        MovimientosSalida,
+        MovimientosAjuste
+    ];
+
     public static readonly string[] All =
     [
         ProductosVer,

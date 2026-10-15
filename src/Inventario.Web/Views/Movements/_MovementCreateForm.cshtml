@@ -1,0 +1,88 @@
+@model Inventario.Web.Models.CreateMovementFormModel
+@{
+    var types = (IReadOnlyList<MovementTypeOption>)(ViewBag.PermittedTypes
+                 ?? Array.Empty<MovementTypeOption>());
+    var typesJson = System.Text.Json.JsonSerializer.Serialize(
+        types.Select(t => new { id = t.Code, text = t.Name }));
+}
+<form id="movement-form"
+      asp-controller="Movements"
+      asp-action="Create"
+      method="post"
+      class="movement-form"
+      data-movement-form
+      data-permitted-types="@typesJson"
+      novalidate>
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly" class="validation-summary-errors" role="alert"></div>
+
+    <div class="form-field">
+        <label class="form-label" asp-for="Type">Tipo</label>
+        <select id="movement-type"
+                name="Type"
+                class="catalog-lookup__select"
+                data-movement-type
+                data-modal-initial-focus
+                autocomplete="off">
+            @foreach (var t in types)
+            {
+                if (string.Equals(Model.Type, t.Code, StringComparison.OrdinalIgnoreCase))
+                {
+                    <option value="@t.Code" selected>@t.Name</option>
+                }
+                else
+                {
+                    <option value="@t.Code">@t.Name</option>
+                }
+            }
+        </select>
+        <span class="form-error" asp-validation-for="Type"></span>
+    </div>
+
+    <div class="form-field filter-field catalog-lookup"
+         data-catalog-lookup
+         data-catalog="products-lookup"
+         data-catalog-url="/catalogs/products-lookup"
+         data-active-only="true">
+        <label class="form-label" for="movement-product">Producto</label>
+        <select id="movement-product"
+                name="ProductId"
+                class="catalog-lookup__select"
+                data-catalog-select
+                data-movement-product
+                placeholder="Buscar por código o nombre…"
+                autocomplete="off">
+            @if (Model.ProductId > 0)
+            {
+                <option value="@Model.ProductId" selected>@Model.ProductId</option>
+            }
+        </select>
+        <p class="form-hint" data-movement-stock hidden>Existencia actual: <strong></strong></p>
+        <span class="form-error" asp-validation-for="ProductId"></span>
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" asp-for="Quantity">Cantidad</label>
+        <input class="form-input"
+               asp-for="Quantity"
+               inputmode="numeric"
+               data-movement-quantity />
+        <p class="form-hint" data-quantity-hint>Entero mayor que 0. En ajuste usa signo (p. ej. -3).</p>
+        <span class="form-error" asp-validation-for="Quantity"></span>
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" asp-for="Reason">Motivo</label>
+        <input class="form-input"
+               asp-for="Reason"
+               maxlength="250"
+               data-movement-reason />
+        <p class="form-hint" data-reason-hint>Opcional en entrada/salida; obligatorio en ajuste.</p>
+        <span class="form-error" asp-validation-for="Reason"></span>
+    </div>
+
+    <div class="movement-form__actions">
+        <button type="submit" class="btn btn-primary" data-movement-submit>Guardar</button>
+    </div>
+</form>

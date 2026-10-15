@@ -13,4 +13,8 @@ public interface IProductQueryService
     Task<Result<ProductDetailDto>> GetByIdAsync(
         int id,
         CancellationToken cancellationToken = default);
+
+    Task<Result<PagedResult<ProductLookupItemDto>>> LookupAsync(
+        ProductLookupQuery query,
+        CancellationToken cancellationToken = default);
 }

@@ -1,5 +1,6 @@
 using Inventario.Application.Auth;
 using Inventario.Application.Catalogs;
+using Inventario.Application.Movements;
 using Inventario.Application.Options;
 using Inventario.Application.Products;
 using Inventario.Application.Security;
@@ -28,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<ICatalogQueryService, CatalogQueryService>();
         services.AddScoped<IProductQueryService, ProductQueryService>();
         services.AddScoped<IProductCommandService, ProductCommandService>();
+        services.AddScoped<IMovementCommandService, MovementCommandService>();
 
         return services;
     }

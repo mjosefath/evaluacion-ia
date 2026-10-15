@@ -21,4 +21,7 @@ public interface ICurrentUser
     /// Null si no hay sesión, no hay perfil o está inactivo.
     /// </summary>
     Task<int?> ResolveUserProfileIdAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>True si el principal tiene el claim de permiso indicado.</summary>
+    bool HasPermission(string permissionCode);
 }

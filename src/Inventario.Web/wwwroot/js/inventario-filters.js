@@ -312,7 +312,8 @@
       const placeholder =
         select.getAttribute("placeholder") || "Buscar…";
 
-      const baseUrl = `/catalogs/${catalog}`;
+      const baseUrl =
+        wrap.getAttribute("data-catalog-url") || `/catalogs/${catalog}`;
 
       /** @param {string} query @param {number} page */
       function buildUrl(query, page) {
@@ -403,11 +404,15 @@
     if (item.code && item.name && item.code !== item.name) {
       text = `${item.code} — ${item.name}`;
     }
+    if (item.stock != null && item.stock !== undefined) {
+      text = `${text} · stock ${item.stock}`;
+    }
     return {
       id: String(id),
       text,
       name: item.name,
       code: item.code,
+      stock: item.stock,
       statusId: item.statusId,
       statusName: item.statusName
     };

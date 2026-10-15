@@ -31,4 +31,8 @@ public interface IInventarioProductsApi
         int id,
         ProductStatusChangeRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<PagedResult<ProductLookupItemDto>> LookupAsync(
+        ProductLookupQuery query,
+        CancellationToken cancellationToken = default);
 }

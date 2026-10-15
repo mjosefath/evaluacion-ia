@@ -14,6 +14,12 @@ public static class PermissionAuthorization
                     code,
                     policy => policy.RequireClaim(PermissionCodes.PermissionClaimType, code));
             }
+
+            options.AddPolicy(
+                PermissionCodes.MovimientosAny,
+                policy => policy.RequireAssertion(ctx =>
+                    PermissionCodes.MovimientosAll.Any(code =>
+                        ctx.User.HasClaim(PermissionCodes.PermissionClaimType, code))));
         });
 
         return services;

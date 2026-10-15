@@ -105,4 +105,17 @@ public sealed class ProductsController(
         var result = await productCommands.ActivateAsync(id, request, cancellationToken);
         return ResultHttpMapper.ToActionResult(this, result);
     }
+
+    [HttpGet("lookup")]
+    [Authorize(Policy = PermissionCodes.MovimientosAny)]
+    [ProducesResponseType(typeof(PagedResult<ProductLookupItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Lookup(
+        [FromQuery] ProductLookupQuery query,
+        CancellationToken cancellationToken)
+    {
+        var result = await products.LookupAsync(query, cancellationToken);
+        return ResultHttpMapper.ToActionResult(this, result);
+    }
 }
