@@ -389,7 +389,7 @@
       });
 
       // Evita navigate al hidratar opción preseleccionada / preload.
-      queuePromise.resolve().then(() => {
+      Promise.resolve().then(() => {
         userReady = true;
       });
 

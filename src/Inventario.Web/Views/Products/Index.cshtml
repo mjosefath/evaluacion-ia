@@ -9,7 +9,7 @@
     var canEdit = PermissionClaims.Has(User, PermissionCodes.ProductosEditar);
     var canActivate = PermissionClaims.Has(User, PermissionCodes.ProductosActivar);
     var showActions = canEdit || canActivate;
-    var filters = await Html.PartialAsync("Products/_ProductFilters", Model);
+    var filters = await Html.PartialAsync("_ProductFilters", Model);
     var filterBar = new FilterBarModel
     {
         Search = q.Search,

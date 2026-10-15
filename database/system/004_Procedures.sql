@@ -11,7 +11,7 @@ SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 GO
 
-CREATE FUNCTION [dbo].[fn_EscapeLikePattern] (@Text NVARCHAR(4000))
+CREATE OR ALTER FUNCTION [dbo].[fn_EscapeLikePattern] (@Text NVARCHAR(4000))
 RETURNS NVARCHAR(4000)
 WITH SCHEMABINDING
 AS
@@ -36,7 +36,7 @@ SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 GO
 
-CREATE PROCEDURE [dbo].[usp_Categories_List]
+CREATE OR ALTER PROCEDURE [dbo].[usp_Categories_List]
     @Search         NVARCHAR(200) = NULL,
     @Page           INT = 1,
     @PageSize       INT = 20,
@@ -80,14 +80,18 @@ BEGIN
               )
           )
     )
-    SELECT @TotalRows = COUNT(1) FROM Filtered;
+    SELECT *
+    INTO #Filtered
+    FROM Filtered;
+
+    SELECT @TotalRows = COUNT(1) FROM #Filtered;
 
     SELECT
         f.[Id],
         f.[Name],
         f.[StatusId],
         f.[StatusName]
-    FROM Filtered AS f
+    FROM #Filtered AS f
     ORDER BY
         CASE WHEN @Dir = N'ASC'  AND (@Sort = N'' OR @Sort = N'name') THEN f.[Name] END ASC,
         CASE WHEN @Dir = N'DESC' AND (@Sort = N'' OR @Sort = N'name') THEN f.[Name] END DESC,
@@ -95,6 +99,8 @@ BEGIN
         CASE WHEN @Dir = N'DESC' AND @Sort = N'id' THEN f.[Id] END DESC,
         f.[Name] ASC
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+    DROP TABLE #Filtered;
 END;
 GO
 
@@ -108,7 +114,7 @@ SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 GO
 
-CREATE PROCEDURE [dbo].[usp_MovementTypes_List]
+CREATE OR ALTER PROCEDURE [dbo].[usp_MovementTypes_List]
     @Search         NVARCHAR(200) = NULL,
     @Page           INT = 1,
     @PageSize       INT = 20,
@@ -154,7 +160,11 @@ BEGIN
               )
           )
     )
-    SELECT @TotalRows = COUNT(1) FROM Filtered;
+    SELECT *
+    INTO #Filtered
+    FROM Filtered;
+
+    SELECT @TotalRows = COUNT(1) FROM #Filtered;
 
     SELECT
         f.[Id],
@@ -162,7 +172,7 @@ BEGIN
         f.[Name],
         f.[StatusId],
         f.[StatusName]
-    FROM Filtered AS f
+    FROM #Filtered AS f
     ORDER BY
         CASE WHEN @Dir = N'ASC'  AND (@Sort = N'' OR @Sort = N'name') THEN f.[Name] END ASC,
         CASE WHEN @Dir = N'DESC' AND (@Sort = N'' OR @Sort = N'name') THEN f.[Name] END DESC,
@@ -170,6 +180,8 @@ BEGIN
         CASE WHEN @Dir = N'DESC' AND @Sort = N'code' THEN f.[Code] END DESC,
         f.[Name] ASC
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+    DROP TABLE #Filtered;
 END;
 GO
 
@@ -182,7 +194,7 @@ SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 GO
 
-CREATE PROCEDURE [dbo].[usp_RecordStatuses_List]
+CREATE OR ALTER PROCEDURE [dbo].[usp_RecordStatuses_List]
     @Search         NVARCHAR(200) = NULL,
     @Page           INT = 1,
     @PageSize       INT = 20,
@@ -222,13 +234,17 @@ BEGIN
               )
           )
     )
-    SELECT @TotalRows = COUNT(1) FROM Filtered;
+    SELECT *
+    INTO #Filtered
+    FROM Filtered;
+
+    SELECT @TotalRows = COUNT(1) FROM #Filtered;
 
     SELECT
         f.[Id],
         f.[Code],
         f.[Name]
-    FROM Filtered AS f
+    FROM #Filtered AS f
     ORDER BY
         CASE WHEN @Dir = N'ASC'  AND (@Sort = N'' OR @Sort = N'id' OR @Sort = N'name') THEN f.[Id] END ASC,
         CASE WHEN @Dir = N'DESC' AND (@Sort = N'' OR @Sort = N'id' OR @Sort = N'name') THEN f.[Id] END DESC,
@@ -236,6 +252,8 @@ BEGIN
         CASE WHEN @Dir = N'DESC' AND @Sort = N'code' THEN f.[Code] END DESC,
         f.[Id] ASC
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+    DROP TABLE #Filtered;
 END;
 GO
 
@@ -249,7 +267,7 @@ SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 GO
 
-CREATE PROCEDURE [dbo].[usp_Products_Lookup]
+CREATE OR ALTER PROCEDURE [dbo].[usp_Products_Lookup]
     @Search         NVARCHAR(200) = NULL,
     @Page           INT = 1,
     @PageSize       INT = 20,
@@ -294,14 +312,18 @@ BEGIN
               )
           )
     )
-    SELECT @TotalRows = COUNT(1) FROM Filtered;
+    SELECT *
+    INTO #Filtered
+    FROM Filtered;
+
+    SELECT @TotalRows = COUNT(1) FROM #Filtered;
 
     SELECT
         f.[Id],
         f.[Code],
         f.[Name],
         f.[Stock]
-    FROM Filtered AS f
+    FROM #Filtered AS f
     ORDER BY
         CASE WHEN @Dir = N'ASC'  AND (@Sort = N'' OR @Sort = N'code') THEN f.[Code] END ASC,
         CASE WHEN @Dir = N'DESC' AND (@Sort = N'' OR @Sort = N'code') THEN f.[Code] END DESC,
@@ -311,6 +333,8 @@ BEGIN
         CASE WHEN @Dir = N'DESC' AND @Sort IN (N'stock', N'existencia') THEN f.[Stock] END DESC,
         f.[Code] ASC
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+    DROP TABLE #Filtered;
 END;
 GO
 
@@ -327,7 +351,7 @@ SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 GO
 
-CREATE PROCEDURE [dbo].[usp_Products_List]
+CREATE OR ALTER PROCEDURE [dbo].[usp_Products_List]
     @Search         NVARCHAR(200) = NULL,
     @Page           INT = 1,
     @PageSize       INT = 20,
@@ -393,7 +417,11 @@ BEGIN
               )
           )
     )
-    SELECT @TotalRows = COUNT(1) FROM Filtered;
+    SELECT *
+    INTO #Filtered
+    FROM Filtered;
+
+    SELECT @TotalRows = COUNT(1) FROM #Filtered;
 
     SELECT
         f.[Id],
@@ -408,7 +436,7 @@ BEGIN
         f.[StatusId],
         f.[StatusName],
         f.[RowVersion]
-    FROM Filtered AS f
+    FROM #Filtered AS f
     ORDER BY
         CASE WHEN @Dir = N'ASC'  AND (@Sort = N'' OR @Sort = N'code' OR @Sort = N'codigo') THEN f.[Code] END ASC,
         CASE WHEN @Dir = N'DESC' AND (@Sort = N'' OR @Sort = N'code' OR @Sort = N'codigo') THEN f.[Code] END DESC,
@@ -422,6 +450,8 @@ BEGIN
         CASE WHEN @Dir = N'DESC' AND (@Sort = N'stock' OR @Sort = N'existencia') THEN f.[Stock] END DESC,
         f.[Code] ASC
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+    DROP TABLE #Filtered;
 END;
 GO
 
@@ -438,7 +468,7 @@ SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 GO
 
-CREATE PROCEDURE [dbo].[usp_InventoryMovements_List]
+CREATE OR ALTER PROCEDURE [dbo].[usp_InventoryMovements_List]
     @Search           NVARCHAR(200) = NULL,
     @Page             INT = 1,
     @PageSize         INT = 20,
@@ -516,7 +546,11 @@ BEGIN
               )
           )
     )
-    SELECT @TotalRows = COUNT(1) FROM Filtered;
+    SELECT *
+    INTO #Filtered
+    FROM Filtered;
+
+    SELECT @TotalRows = COUNT(1) FROM #Filtered;
 
     SELECT
         f.[Id],
@@ -533,7 +567,7 @@ BEGIN
         f.[Reason],
         f.[CreatedBy],
         f.[CreatedByName]
-    FROM Filtered AS f
+    FROM #Filtered AS f
     ORDER BY
         CASE WHEN @Dir = N'ASC'  AND (@Sort = N'' OR @Sort IN (N'date', N'fecha', N'createdatutc')) THEN f.[CreatedAtUtc] END ASC,
         CASE WHEN @Dir = N'DESC' AND (@Sort = N'' OR @Sort IN (N'date', N'fecha', N'createdatutc')) THEN f.[CreatedAtUtc] END DESC,
@@ -544,6 +578,8 @@ BEGIN
         f.[CreatedAtUtc] DESC,
         f.[Id] DESC
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+    DROP TABLE #Filtered;
 END;
 GO
 
@@ -560,7 +596,7 @@ SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 GO
 
-CREATE PROCEDURE [dbo].[usp_Report_Stock]
+CREATE OR ALTER PROCEDURE [dbo].[usp_Report_Stock]
     @Search         NVARCHAR(200) = NULL,
     @Page           INT = 1,
     @PageSize       INT = 20,
@@ -623,10 +659,14 @@ BEGIN
               )
           )
     )
+    SELECT *
+    INTO #Filtered
+    FROM Filtered;
+
     SELECT
         @TotalRows = COUNT(1),
         @GrandTotal = ISNULL(SUM(f.[InventoryValue]), CAST(0 AS DECIMAL(18, 2)))
-    FROM Filtered AS f;
+    FROM #Filtered AS f;
 
     SELECT
         f.[ProductId],
@@ -639,7 +679,7 @@ BEGIN
         f.[MinStock],
         f.[StockStatus],
         f.[InventoryValue]
-    FROM Filtered AS f
+    FROM #Filtered AS f
     ORDER BY
         CASE WHEN @Dir = N'ASC'  AND (@Sort = N'' OR @Sort = N'code' OR @Sort = N'codigo') THEN f.[Code] END ASC,
         CASE WHEN @Dir = N'DESC' AND (@Sort = N'' OR @Sort = N'code' OR @Sort = N'codigo') THEN f.[Code] END DESC,
@@ -653,6 +693,8 @@ BEGIN
         CASE WHEN @Dir = N'DESC' AND (@Sort IN (N'value', N'valor', N'inventoryvalue')) THEN f.[InventoryValue] END DESC,
         f.[Code] ASC
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+    DROP TABLE #Filtered;
 END;
 GO
 

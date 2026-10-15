@@ -3,7 +3,7 @@
     ViewData["Title"] = "Historial";
     var q = Model.Query;
     var result = Model.Result;
-    var filters = await Html.PartialAsync("History/_HistoryFilters", Model);
+    var filters = await Html.PartialAsync("_HistoryFilters", Model);
     var filterBar = new FilterBarModel
     {
         Search = q.Search,

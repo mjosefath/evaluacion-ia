@@ -3,7 +3,7 @@
     ViewData["Title"] = "Reporte";
     var q = Model.Query;
     var result = Model.Result;
-    var filters = await Html.PartialAsync("Reports/_ReportFilters", Model);
+    var filters = await Html.PartialAsync("_ReportFilters", Model);
     var filterBar = new FilterBarModel
     {
         Search = q.Search,
