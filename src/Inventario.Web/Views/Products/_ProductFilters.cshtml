@@ -1,0 +1,26 @@
+@model Inventario.Web.Models.ProductIndexViewModel
+@{
+    ViewData["Name"] = "categoryId";
+    ViewData["Label"] = "Categoría";
+    ViewData["Catalog"] = "categories";
+    ViewData["ActiveOnly"] = false;
+    ViewData["Placeholder"] = "Todas las categorías";
+    ViewData["Value"] = Model.Query.CategoryId?.ToString();
+    ViewData["ValueLabel"] = Model.CategoryLabel;
+    ViewData["FilterDefault"] = null;
+    ViewData["FilterEmpty"] = null;
+}
+<partial name="Ui/_CatalogLookup" />
+
+@{
+    ViewData["Name"] = "statusId";
+    ViewData["Label"] = "Estatus";
+    ViewData["Catalog"] = "record-statuses";
+    ViewData["ActiveOnly"] = false;
+    ViewData["Placeholder"] = "Todos los estatus";
+    ViewData["Value"] = Model.StatusFilterAll ? null : Model.Query.StatusId?.ToString();
+    ViewData["ValueLabel"] = Model.StatusFilterAll ? null : Model.StatusLabel;
+    ViewData["FilterDefault"] = "1";
+    ViewData["FilterEmpty"] = "keep";
+}
+<partial name="Ui/_CatalogLookup" />

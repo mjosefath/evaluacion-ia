@@ -151,6 +151,20 @@ summary:focus-visible {
   border-color: transparent;
 }
 
+.app-nav-logout {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-nav-link--button {
+  width: 100%;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
 /* —— Header —— */
 .app-header {
   display: flex;
@@ -1066,4 +1080,112 @@ span.form-error:empty {
   margin: var(--spacing-12) 0 0;
   font-size: var(--text-caption);
   color: var(--color-fog);
+}
+
+/* —— Listados (Productos, etc.) —— */
+.page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12);
+  margin-bottom: var(--spacing-8);
+}
+
+.page-toolbar__title {
+  margin-bottom: 0;
+}
+
+.table-panel {
+  border: 1px solid var(--color-ash);
+  border-radius: var(--radius-cards);
+  background: var(--color-canvas-white);
+  overflow: hidden;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-body);
+}
+
+.data-table th,
+.data-table td {
+  padding: var(--spacing-12) var(--spacing-16);
+  border-bottom: 1px solid var(--color-ash);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.data-table th {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-steel);
+  background: var(--color-paper-mist);
+}
+
+.data-table__num {
+  text-align: right;
+}
+
+.data-table__sort {
+  color: inherit;
+  text-decoration: none;
+}
+
+.data-table__sort:hover {
+  color: var(--color-electric-blue);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--spacing-8);
+  border-radius: 9999px;
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  border: 1px solid var(--color-ash);
+  background: var(--color-paper-mist);
+  color: var(--color-charcoal);
+}
+
+.badge--ok {
+  border-color: color-mix(in srgb, var(--color-vivid-green) 35%, var(--color-ash));
+  background: var(--color-soft-mint);
+  color: var(--color-vivid-green);
+}
+
+.badge--warn {
+  border-color: color-mix(in srgb, var(--color-tangerine) 35%, var(--color-ash));
+  background: color-mix(in srgb, var(--color-tangerine) 12%, var(--color-canvas-white));
+  color: var(--color-tangerine);
+}
+
+.badge--neutral {
+  background: var(--color-canvas-white);
+}
+
+.badge--muted {
+  color: var(--color-fog);
+}
+
+.empty-state {
+  padding: var(--spacing-48) var(--spacing-24);
+  text-align: center;
+  color: var(--color-steel);
+}
+
+.empty-state p {
+  margin: 0 0 var(--spacing-16);
+}
+
+.app-sidebar .app-nav {
+  flex: 1;
+  min-height: 0;
 }

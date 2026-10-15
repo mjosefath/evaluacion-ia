@@ -1,14 +1,8 @@
 @*
-  Selector de catálogo con Tom Select (PG9–PG10). No usar <select> nativo relleno en servidor.
+  Selector de catálogo con Tom Select (PG9–PG10).
 
-  Parámetros ViewData:
-    Name (string) — name del input
-    Label (string)
-    Catalog (string) — categories | movement-types | record-statuses
-    Value (string?) — id seleccionado
-    ValueLabel (string?) — texto del id seleccionado (para editar)
-    ActiveOnly (bool) — captura = true; filtros = false (FL6)
-    Placeholder (string?)
+  ViewData: Name, Label, Catalog, Value, ValueLabel, ActiveOnly, Placeholder,
+            FilterDefault (restaurar al Limpiar), FilterEmpty=keep (vacío se conserva en URL).
 *@
 @{
     var name = ViewData["Name"] as string ?? "id";
@@ -18,6 +12,8 @@
     var valueLabel = ViewData["ValueLabel"] as string;
     var activeOnly = ViewData["ActiveOnly"] as bool? ?? false;
     var placeholder = ViewData["Placeholder"] as string ?? "Buscar…";
+    var filterDefault = ViewData["FilterDefault"] as string;
+    var filterEmpty = ViewData["FilterEmpty"] as string;
     var inputId = $"lookup-{name}-{Guid.NewGuid():N}"[..20];
 }
 <div class="form-field filter-field catalog-lookup"
@@ -31,6 +27,8 @@
             data-catalog-select
             data-filter-field="@name"
             data-filter-label="@label"
+            data-filter-default="@filterDefault"
+            data-filter-empty="@filterEmpty"
             placeholder="@placeholder"
             autocomplete="off">
         @if (!string.IsNullOrEmpty(value))

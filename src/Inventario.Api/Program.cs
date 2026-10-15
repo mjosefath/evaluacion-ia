@@ -2,6 +2,7 @@ using System.Text;
 using Inventario.Api.Hosting;
 using Inventario.Api.Http;
 using Inventario.Api.Options;
+using Inventario.Api.Security;
 using Inventario.Application;
 using Inventario.Application.Options;
 using Inventario.Application.Results;
@@ -102,7 +103,7 @@ try
                 bearerOptions.IncludeErrorDetails = environment.IsDevelopment();
             });
 
-    builder.Services.AddAuthorization();
+    builder.Services.AddInventarioPermissionPolicies();
     builder.Services.AddExceptionHandler<ApiProblemExceptionHandler>();
     builder.Services.AddProblemDetails();
     builder.Services.AddControllers()

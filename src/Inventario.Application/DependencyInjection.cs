@@ -1,6 +1,7 @@
 using Inventario.Application.Auth;
 using Inventario.Application.Catalogs;
 using Inventario.Application.Options;
+using Inventario.Application.Products;
 using Inventario.Application.Security;
 using Inventario.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICurrentUser, CurrentUser>();
         services.AddScoped<ICatalogQueryService, CatalogQueryService>();
+        services.AddScoped<IProductQueryService, ProductQueryService>();
 
         return services;
     }

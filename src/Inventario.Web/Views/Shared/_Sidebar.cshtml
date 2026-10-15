@@ -1,6 +1,16 @@
+@using Inventario.Contracts.Security
+@using Inventario.Web.Security
 @{
-    // Activo solo por ruta (Home/Index). El modal de ChangePassword no navega → no altera el activo.
     var isInicio = NavActive.IsMatch(ViewContext, "Home", "Index");
+    var isProductos = NavActive.IsMatch(ViewContext, "Products");
+    var isMovimientos = NavActive.IsMatch(ViewContext, "Movements");
+    var isHistorial = NavActive.IsMatch(ViewContext, "History");
+    var isReporte = NavActive.IsMatch(ViewContext, "Reports");
+
+    var canProductos = PermissionClaims.Has(User, PermissionCodes.ProductosVer);
+    var canMovimientos = PermissionClaims.CanSeeMovimientos(User);
+    var canHistorial = PermissionClaims.Has(User, PermissionCodes.HistorialVer);
+    var canReporte = PermissionClaims.Has(User, PermissionCodes.ReporteVer);
 }
 
 <aside id="app-sidebar" class="app-sidebar" aria-label="Navegación principal">
@@ -18,5 +28,65 @@
             <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-house"/></svg>
             <span class="app-nav-label">Inicio</span>
         </a>
+
+        @if (canProductos)
+        {
+            <a class="app-nav-link@(isProductos ? " is-active" : null)"
+               asp-controller="Products"
+               asp-action="Index"
+               title="Productos"
+               aria-label="Productos"
+               aria-current="@(isProductos ? "page" : null)">
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-package"/></svg>
+                <span class="app-nav-label">Productos</span>
+            </a>
+        }
+
+        @if (canMovimientos)
+        {
+            <a class="app-nav-link@(isMovimientos ? " is-active" : null)"
+               asp-controller="Movements"
+               asp-action="Index"
+               title="Movimientos"
+               aria-label="Movimientos"
+               aria-current="@(isMovimientos ? "page" : null)">
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-arrow-left-right"/></svg>
+                <span class="app-nav-label">Movimientos</span>
+            </a>
+        }
+
+        @if (canHistorial)
+        {
+            <a class="app-nav-link@(isHistorial ? " is-active" : null)"
+               asp-controller="History"
+               asp-action="Index"
+               title="Historial"
+               aria-label="Historial"
+               aria-current="@(isHistorial ? "page" : null)">
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-history"/></svg>
+                <span class="app-nav-label">Historial</span>
+            </a>
+        }
+
+        @if (canReporte)
+        {
+            <a class="app-nav-link@(isReporte ? " is-active" : null)"
+               asp-controller="Reports"
+               asp-action="Stock"
+               title="Reporte"
+               aria-label="Reporte"
+               aria-current="@(isReporte ? "page" : null)">
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-chart-column"/></svg>
+                <span class="app-nav-label">Reporte</span>
+            </a>
+        }
+
+        <form class="app-nav-logout" asp-controller="Account" asp-action="Logout" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="app-nav-link app-nav-link--button" title="Cerrar sesión" aria-label="Cerrar sesión">
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-log-out"/></svg>
+                <span class="app-nav-label">Cerrar sesión</span>
+            </button>
+        </form>
     </nav>
 </aside>

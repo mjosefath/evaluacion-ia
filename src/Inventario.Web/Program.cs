@@ -3,6 +3,7 @@ using Inventario.ApiClient.Auth;
 using Inventario.Web.Auth;
 using Inventario.Web.Filters;
 using Inventario.Web.Options;
+using Inventario.Web.Security;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Serilog;
 
@@ -59,7 +60,7 @@ try
             options.ReturnUrlParameter = "returnUrl";
         });
 
-    builder.Services.AddAuthorization();
+    builder.Services.AddInventarioPermissionPolicies();
     builder.Services.AddScoped<InventarioApiExceptionFilter>();
     builder.Services.AddControllersWithViews(options =>
     {

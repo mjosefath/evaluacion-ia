@@ -9,8 +9,10 @@
   /** @param {string} name @param {string|null|undefined} value */
   function setQueryParam(name, value) {
     const url = new URL(window.location.href);
-    if (value === null || value === undefined || String(value).trim() === "") {
+    if (value === null || value === undefined) {
       url.searchParams.delete(name);
+    } else if (value === "") {
+      url.searchParams.set(name, "");
     } else {
       url.searchParams.set(name, String(value));
     }
@@ -24,8 +26,10 @@
   function patchQuery(patch, opts) {
     const url = new URL(window.location.href);
     Object.entries(patch).forEach(([key, value]) => {
-      if (value === null || value === undefined || String(value).trim() === "") {
+      if (value === null || value === undefined) {
         url.searchParams.delete(key);
+      } else if (value === "") {
+        url.searchParams.set(key, "");
       } else {
         url.searchParams.set(key, String(value));
       }
@@ -129,7 +133,7 @@
         btn.innerHTML =
           '<svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-x"></use></svg>';
         btn.addEventListener("click", () => {
-          clearField(el);
+          restoreOrClear(el);
           applyChange({ resetPage: true });
         });
 
@@ -151,11 +155,27 @@
       }
     }
 
+    /** @param {HTMLElement} el */
+    function restoreOrClear(el) {
+      const def = el.getAttribute("data-filter-default");
+      if (def != null && def !== "") {
+        if (el instanceof HTMLSelectElement && el.tomselect) {
+          el.tomselect.setValue(def, true);
+          return;
+        }
+        if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) {
+          el.value = def;
+          return;
+        }
+      }
+      clearField(el);
+    }
+
     function clearAll() {
       collectFields().forEach((el) => {
         if (el.getAttribute("data-filter-skip-badge") === "true") return;
         if (el.getAttribute("data-filter-field") === "pageSize") return;
-        clearField(el);
+        restoreOrClear(el);
       });
       applyChange({ resetPage: true, clearAll: true });
     }
@@ -172,7 +192,13 @@
         if (!name) return;
         if (opts?.clearAll && name === "pageSize") return;
         const v = fieldValue(el);
-        patch[name] = v && String(v).trim() ? v : null;
+        if (v && String(v).trim()) {
+          patch[name] = v;
+        } else if (el.getAttribute("data-filter-empty") === "keep") {
+          patch[name] = "";
+        } else {
+          patch[name] = null;
+        }
       });
 
       if (opts?.resetPage || opts?.clearAll) {
@@ -202,9 +228,9 @@
 
     const debouncedSearch = debounce(() => applyChange({ resetPage: true }), DEBOUNCE_MS);
 
-    filterBar
-      ?.querySelector("[data-filter-clear]")
-      ?.addEventListener("click", () => clearAll());
+    root.querySelectorAll("[data-filter-clear]").forEach((btn) => {
+      btn.addEventListener("click", () => clearAll());
+    });
 
     collectFields().forEach((el) => {
       const name = el.getAttribute("data-filter-field");

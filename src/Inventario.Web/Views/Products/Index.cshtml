@@ -1,0 +1,140 @@
+@model Inventario.Web.Models.ProductIndexViewModel
+@{
+    ViewData["Title"] = "Productos";
+    var q = Model.Query;
+    var result = Model.Result;
+    var filters = await Html.PartialAsync("Products/_ProductFilters", Model);
+    var filterBar = new FilterBarModel
+    {
+        Search = q.Search,
+        SearchPlaceholder = "Buscar productos…",
+        Filters = filters
+    };
+    var paginator = new PaginatorModel
+    {
+        Page = result.Page,
+        PageSize = result.PageSize,
+        TotalRows = result.TotalRows
+    };
+
+    string SortUrl(string column)
+    {
+        var nextDir = string.Equals(q.Sort, column, StringComparison.OrdinalIgnoreCase)
+                      && !string.Equals(q.Dir, "desc", StringComparison.OrdinalIgnoreCase)
+            ? "desc"
+            : "asc";
+
+        var values = new Dictionary<string, string?>
+        {
+            ["page"] = "1",
+            ["pageSize"] = q.PageSize.ToString(),
+            ["sort"] = column,
+            ["dir"] = nextDir
+        };
+        if (!string.IsNullOrWhiteSpace(q.Search))
+        {
+            values["search"] = q.Search;
+        }
+
+        if (q.CategoryId.HasValue)
+        {
+            values["categoryId"] = q.CategoryId.Value.ToString();
+        }
+
+        if (Model.StatusFilterAll)
+        {
+            values["statusId"] = "";
+        }
+        else if (q.StatusId.HasValue)
+        {
+            values["statusId"] = q.StatusId.Value.ToString();
+        }
+
+        return Url.Action("Index", "Products", values)!;
+    }
+
+    string Ind(string column) =>
+        !string.Equals(q.Sort, column, StringComparison.OrdinalIgnoreCase)
+            ? ""
+            : string.Equals(q.Dir, "desc", StringComparison.OrdinalIgnoreCase) ? " ↓" : " ↑";
+}
+
+<div class="page-toolbar">
+    <h1 class="app-page-title page-toolbar__title">Productos</h1>
+</div>
+
+<div data-list-page data-list-navigate="reload">
+    <partial name="Ui/_FilterBar" model="filterBar" />
+
+    <div class="table-panel" data-list-table>
+        @if (result.TotalRows == 0)
+        {
+            <div class="empty-state">
+                @if (!string.IsNullOrWhiteSpace(q.Search))
+                {
+                    <p>No hay resultados para «@q.Search»</p>
+                }
+                else
+                {
+                    <p>No hay resultados con los filtros actuales.</p>
+                }
+                <button type="button" class="btn btn-outline" data-filter-clear>Limpiar filtros</button>
+            </div>
+        }
+        else
+        {
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th><a class="data-table__sort" href="@SortUrl("code")">Código@(Ind("code"))</a></th>
+                            <th><a class="data-table__sort" href="@SortUrl("name")">Nombre@(Ind("name"))</a></th>
+                            <th><a class="data-table__sort" href="@SortUrl("category")">Categoría@(Ind("category"))</a></th>
+                            <th class="data-table__num"><a class="data-table__sort" href="@SortUrl("price")">Precio@(Ind("price"))</a></th>
+                            <th class="data-table__num">Mínimo</th>
+                            <th class="data-table__num"><a class="data-table__sort" href="@SortUrl("stock")">Existencia@(Ind("stock"))</a></th>
+                            <th>Estado stock</th>
+                            <th>Estatus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in result.Items)
+                    {
+                        <tr>
+                            <td>@item.Code</td>
+                            <td>@item.Name</td>
+                            <td>@item.CategoryName</td>
+                            <td class="data-table__num">@item.UnitPrice.ToString("N2")</td>
+                            <td class="data-table__num">@item.MinStock</td>
+                            <td class="data-table__num">@item.Stock</td>
+                            <td>
+                                <span class="badge @(item.StockStatus == "BAJO" ? "badge--warn" : "badge--ok")">
+                                    @item.StockStatus
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge @(item.StatusId == 1 ? "badge--neutral" : "badge--muted")">
+                                    @item.StatusName
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <partial name="Ui/_Paginator" model="paginator" />
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const root = document.querySelector("[data-list-page]");
+            if (root && window.InventarioUi?.filters) {
+                window.InventarioUi.filters.bind(root);
+            }
+        });
+    </script>
+}
