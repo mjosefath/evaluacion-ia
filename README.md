@@ -44,6 +44,14 @@ Sobre **Inventario** (BD Sistema; recrear si cambió el esquema):
 10. `database/system/010_CreateVwProductStock.sql`
 11. `database/system/011_SeedProductsAndMovements.sql`
 12. `database/system/012_SeedInventoryPermissions.sql`
+13. `database/system/013_CreateFnEscapeLikePattern.sql`
+14. `database/system/014_usp_Categories_List.sql`
+15. `database/system/015_usp_MovementTypes_List.sql`
+16. `database/system/016_usp_RecordStatuses_List.sql`
+17. `database/system/017_usp_Products_Lookup.sql`
+18. `database/system/018_usp_Products_List.sql`
+19. `database/system/019_usp_InventoryMovements_List.sql`
+20. `database/system/020_usp_Report_Stock.sql`
 
 Los scripts son vírgenes (CREATE/INSERT). Si cambia un script de esquema, **recrea la BD** y vuelve a ejecutarlos en orden (sin ALTER en desarrollo).
 

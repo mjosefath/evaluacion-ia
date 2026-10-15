@@ -48,6 +48,10 @@ El análisis 02 define un molde único de columnas y reglas (E1–E11) para toda
 | MovementTypes | Mutable; `Code` varchar(10) único (`ENTRADA` / `SALIDA` / `AJUSTE`); `Name` nvarchar(30); seed de esos 3; `CreatedBy` NULL. |
 | RecordStatuses | Sin cambios (no se redefine). |
 
+## Adenda (2026-10-14) — Procedimientos de lectura (T02-10 / SP1–SP6)
+
+Listados y reporte vía `usp_*_List` / `usp_Report_Stock` / `usp_Products_Lookup` (scripts 013–020). Totales en `OUTPUT`; existencia desde `vw_ProductStock`; `ORDER BY` con CASE cerrado; búsqueda con parámetros y `fn_EscapeLikePattern` (B6). Escrituras siguen en la API.
+
 ## Adenda (2026-10-14) — ICurrentUser y claim profile_id (T02-09 / E5)
 
 | Tema | Decisión |
