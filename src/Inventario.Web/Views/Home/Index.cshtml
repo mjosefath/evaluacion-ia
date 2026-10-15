@@ -1,7 +1,153 @@
+@model Inventario.Web.Models.HomeDashboardViewModel
 @{
     ViewData["Title"] = "Inicio";
+    var hour = DateTime.Now.Hour;
+    var greeting = hour < 12 ? "Buenos días" : hour < 19 ? "Buenas tardes" : "Buenas noches";
 }
 
-<section class="app-page" aria-labelledby="page-title">
-    <h1 id="page-title" class="app-page-title">Inicio</h1>
+<section class="home-hero" aria-labelledby="home-greeting">
+    <p class="home-hero__eyebrow text-caption">Inventario</p>
+    <h1 id="home-greeting" class="home-hero__title">@greeting, @Model.DisplayName</h1>
+    <p class="home-hero__lead text-muted">
+        Resumen de existencias y actividad reciente. Usa el menú para operar.
+    </p>
 </section>
+
+@if (Model.HasAnyInsight)
+{
+    <section class="insight-grid" aria-label="Indicadores">
+        @if (Model.ActiveProducts.HasValue)
+        {
+            <article class="insight-card insight-card--enter" style="--delay: 0">
+                <div class="insight-card__icon" aria-hidden="true">
+                    <svg class="icon"><use href="#lucide-package"/></svg>
+                </div>
+                <p class="insight-card__label">Productos activos</p>
+                <p class="insight-card__value">@Model.ActiveProducts.Value.ToString("N0")</p>
+            </article>
+        }
+        @if (Model.LowStockCount.HasValue)
+        {
+            <article class="insight-card insight-card--enter @(Model.LowStockCount > 0 ? "insight-card--warn" : null)" style="--delay: 1">
+                <div class="insight-card__icon" aria-hidden="true">
+                    <svg class="icon"><use href="#lucide-triangle-alert"/></svg>
+                </div>
+                <p class="insight-card__label">Stock bajo</p>
+                <p class="insight-card__value">@Model.LowStockCount.Value.ToString("N0")</p>
+            </article>
+        }
+        @if (Model.InventoryValue.HasValue)
+        {
+            <article class="insight-card insight-card--enter" style="--delay: 2">
+                <div class="insight-card__icon" aria-hidden="true">
+                    <svg class="icon"><use href="#lucide-chart-column"/></svg>
+                </div>
+                <p class="insight-card__label">Valor en inventario</p>
+                <p class="insight-card__value insight-card__value--money">@Model.InventoryValue.Value.ToString("N2")</p>
+            </article>
+        }
+        @if (Model.MovementsToday.HasValue)
+        {
+            <article class="insight-card insight-card--enter" style="--delay: 3">
+                <div class="insight-card__icon" aria-hidden="true">
+                    <svg class="icon"><use href="#lucide-arrow-left-right"/></svg>
+                </div>
+                <p class="insight-card__label">Movimientos hoy</p>
+                <p class="insight-card__value">@Model.MovementsToday.Value.ToString("N0")</p>
+            </article>
+        }
+    </section>
+}
+
+<nav class="home-shortcuts" aria-label="Accesos rápidos">
+    @if (Model.CanProducts)
+    {
+        <a class="home-shortcut" asp-controller="Products" asp-action="Index">
+            <svg class="icon" aria-hidden="true"><use href="#lucide-package"/></svg>
+            <span>Productos</span>
+        </a>
+    }
+    @if (Model.CanMovements)
+    {
+        <a class="home-shortcut" asp-controller="Movements" asp-action="Index">
+            <svg class="icon" aria-hidden="true"><use href="#lucide-arrow-left-right"/></svg>
+            <span>Movimientos</span>
+        </a>
+    }
+    @if (Model.CanHistory)
+    {
+        <a class="home-shortcut" asp-controller="History" asp-action="Index">
+            <svg class="icon" aria-hidden="true"><use href="#lucide-history"/></svg>
+            <span>Historial</span>
+        </a>
+    }
+    @if (Model.CanReport)
+    {
+        <a class="home-shortcut" asp-controller="Reports" asp-action="Stock">
+            <svg class="icon" aria-hidden="true"><use href="#lucide-chart-column"/></svg>
+            <span>Reporte</span>
+        </a>
+    }
+</nav>
+
+<div class="home-panels">
+    @if (Model.LowStockItems.Count > 0)
+    {
+        <section class="home-panel" aria-labelledby="low-stock-title">
+            <header class="home-panel__header">
+                <h2 id="low-stock-title" class="home-panel__title">Atención: stock bajo</h2>
+                @if (Model.CanProducts)
+                {
+                    <a class="home-panel__link" asp-controller="Products" asp-action="Index">Ver productos</a>
+                }
+            </header>
+            <ul class="home-list">
+                @foreach (var p in Model.LowStockItems)
+                {
+                    <li class="home-list__item">
+                        <div>
+                            <span class="home-list__primary">@p.Name</span>
+                            <span class="home-list__secondary">@p.Code · @p.CategoryName</span>
+                        </div>
+                        <span class="home-list__meta home-list__meta--warn">@p.Stock / mín. @p.MinStock</span>
+                    </li>
+                }
+            </ul>
+        </section>
+    }
+
+    @if (Model.RecentMovements.Count > 0)
+    {
+        <section class="home-panel" aria-labelledby="recent-mov-title">
+            <header class="home-panel__header">
+                <h2 id="recent-mov-title" class="home-panel__title">Últimos movimientos</h2>
+                @if (Model.CanHistory)
+                {
+                    <a class="home-panel__link" asp-controller="History" asp-action="Index">Ver historial</a>
+                }
+            </header>
+            <ul class="home-list">
+                @foreach (var m in Model.RecentMovements)
+                {
+                    var local = m.CreatedAtUtc.ToLocalTime();
+                    var effect = m.Quantity > 0 ? $"+{m.Quantity}" : m.Quantity.ToString();
+                    var effectClass = m.Quantity >= 0 ? "home-list__meta--pos" : "home-list__meta--neg";
+                    <li class="home-list__item">
+                        <div>
+                            <span class="home-list__primary">@m.ProductName</span>
+                            <span class="home-list__secondary">@m.MovementTypeName · @local.ToString("g")</span>
+                        </div>
+                        <span class="home-list__meta @effectClass">@effect</span>
+                    </li>
+                }
+            </ul>
+        </section>
+    }
+
+    @if (!Model.HasAnyInsight)
+    {
+        <section class="home-panel home-panel--empty">
+            <p class="text-muted">Cuando tengas permisos de lectura, aquí verás indicadores de inventario.</p>
+        </section>
+    }
+</div>

@@ -1,5 +1,5 @@
 /**
- * Captura de movimientos (F2): Tom Select tipo/producto, submit AJAX, conserva tipo.
+ * Captura de movimientos (F2): pills de tipo, Tom Select producto, submit AJAX.
  */
 (() => {
   function parseUnobtrusive(form) {
@@ -12,30 +12,48 @@
     }
   }
 
-  function initTypeSelect(form) {
+  function syncTypePills(form) {
     const select = form.querySelector("[data-movement-type]");
-    if (!(select instanceof HTMLSelectElement) || typeof TomSelect === "undefined") return null;
-    if (select.tomselect) return select.tomselect;
-
-    const ts = new TomSelect(select, {
-      maxItems: 1,
-      allowEmptyOption: false,
-      plugins: [],
-      onChange() {
-        syncHints(form);
-      }
+    if (!(select instanceof HTMLSelectElement)) return;
+    const value = select.value;
+    form.querySelectorAll("[data-type-pill]").forEach((btn) => {
+      if (!(btn instanceof HTMLElement)) return;
+      const code = btn.getAttribute("data-type-pill") || "";
+      const on = code === value;
+      btn.classList.toggle("is-selected", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
     });
-    select.tomselect = ts;
-    return ts;
+  }
+
+  function wireTypePills(form) {
+    const select = form.querySelector("[data-movement-type]");
+    if (!(select instanceof HTMLSelectElement)) return;
+
+    form.querySelectorAll("[data-type-pill]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const code = btn.getAttribute("data-type-pill");
+        if (!code) return;
+        select.value = code;
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        syncTypePills(form);
+        syncHints(form);
+      });
+    });
+
+    select.addEventListener("change", () => {
+      syncTypePills(form);
+      syncHints(form);
+    });
+
+    syncTypePills(form);
   }
 
   function syncHints(form) {
     const type =
-      form.querySelector("[data-movement-type]")?.tomselect?.getValue() ||
-      form.querySelector("[data-movement-type]")?.value ||
-      "";
+      form.querySelector("[data-movement-type]")?.value || "";
     const qtyHint = form.querySelector("[data-quantity-hint]");
     const reasonHint = form.querySelector("[data-reason-hint]");
+    const reasonInput = form.querySelector("[data-movement-reason]");
     const isAjuste = String(type).toUpperCase() === "AJUSTE";
     if (qtyHint) {
       qtyHint.textContent = isAjuste
@@ -47,6 +65,11 @@
         ? "Obligatorio en ajuste."
         : "Opcional en entrada y salida.";
     }
+    if (reasonInput instanceof HTMLInputElement) {
+      reasonInput.placeholder = isAjuste
+        ? "Motivo del ajuste (obligatorio)"
+        : "Opcional en entrada/salida";
+    }
   }
 
   function updateStockHint(form) {
@@ -55,71 +78,63 @@
     if (!(hint instanceof HTMLElement) || !(select instanceof HTMLSelectElement)) return;
     const ts = select.tomselect;
     const value = ts ? ts.getValue() : select.value;
+    const valueEl = hint.querySelector(".stock-chip__value") || hint.querySelector("strong");
     if (!value) {
       hint.hidden = true;
       return;
     }
     const opt = ts?.options?.[value];
     const stock = opt?.stock;
-    const strong = hint.querySelector("strong");
     if (stock == null) {
       hint.hidden = true;
       return;
     }
-    if (strong) strong.textContent = String(stock);
+    if (valueEl) valueEl.textContent = String(stock);
     hint.hidden = false;
   }
 
   function resetCaptureFields(form, keepType) {
-    const typeValue =
-      form.querySelector("[data-movement-type]")?.tomselect?.getValue() ||
-      form.querySelector("[data-movement-type]")?.value;
+    const typeValue = form.querySelector("[data-movement-type]")?.value;
 
     const product = form.querySelector("[data-movement-product]");
     if (product?.tomselect) {
       product.tomselect.clear(true);
-    } else if (product) {
-      product.value = "";
+    } else if (product instanceof HTMLSelectElement) {
+      product.selectedIndex = -1;
     }
 
     const qty = form.querySelector("[data-movement-quantity]");
-    if (qty instanceof HTMLInputElement) qty.value = "";
+    if (qty instanceof HTMLInputElement) {
+      qty.value = "";
+    }
 
     const reason = form.querySelector("[data-movement-reason]");
-    if (reason instanceof HTMLInputElement) reason.value = "";
-
-    form.querySelectorAll(".form-error").forEach((el) => {
-      el.textContent = "";
-    });
-    form.querySelectorAll(".input-validation-error").forEach((el) => {
-      el.classList.remove("input-validation-error");
-    });
-    const summary = form.querySelector(".validation-summary-errors");
-    if (summary) summary.innerHTML = "";
+    if (reason instanceof HTMLInputElement) {
+      reason.value = "";
+    }
 
     if (keepType && typeValue) {
       const typeSelect = form.querySelector("[data-movement-type]");
-      if (typeSelect?.tomselect) {
-        typeSelect.tomselect.setValue(typeValue, true);
-      } else if (typeSelect) {
+      if (typeSelect instanceof HTMLSelectElement) {
         typeSelect.value = typeValue;
       }
     }
 
+    syncTypePills(form);
     updateStockHint(form);
     syncHints(form);
 
     const focusEl =
       form.querySelector("[data-movement-product]")?.tomselect?.control_input ||
       form.querySelector("[data-movement-product]") ||
-      form.querySelector("[data-modal-initial-focus]");
+      form.querySelector("[data-type-pill].is-selected");
     if (focusEl instanceof HTMLElement) {
       focusEl.focus();
     }
   }
 
   function wireForm(form) {
-    initTypeSelect(form);
+    wireTypePills(form);
     if (window.InventarioUi?.filters?.initCatalogLookups) {
       window.InventarioUi.filters.initCatalogLookups(form, () => updateStockHint(form));
     }
