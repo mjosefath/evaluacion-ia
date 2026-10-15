@@ -26,6 +26,31 @@ public sealed class InventarioProductsApi(HttpClient httpClient) : IInventarioPr
         return await ReadSuccessAsync<ProductDetailDto>(response, cancellationToken);
     }
 
+    public async Task<ProductDetailDto> CreateAsync(
+        CreateProductRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await httpClient.PostAsJsonAsync(
+            "api/products",
+            request,
+            InventarioJson.Options,
+            cancellationToken);
+        return await ReadSuccessAsync<ProductDetailDto>(response, cancellationToken);
+    }
+
+    public async Task<ProductDetailDto> UpdateAsync(
+        int id,
+        UpdateProductRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await httpClient.PutAsJsonAsync(
+            $"api/products/{id}",
+            request,
+            InventarioJson.Options,
+            cancellationToken);
+        return await ReadSuccessAsync<ProductDetailDto>(response, cancellationToken);
+    }
+
     private static string BuildQuery(ProductListQuery query)
     {
         var parts = new List<string>

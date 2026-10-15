@@ -1185,6 +1185,29 @@ span.form-error:empty {
   margin: 0 0 var(--spacing-16);
 }
 
+.data-table__actions {
+  text-align: right;
+  width: 1%;
+}
+
+.btn-sm {
+  min-height: 28px;
+  padding: var(--spacing-4) var(--spacing-8);
+  font-size: var(--text-caption);
+}
+
+.form-hint {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--color-fog);
+  line-height: var(--leading-caption);
+}
+
+.form-input[readonly] {
+  background: var(--color-paper-mist);
+  color: var(--color-steel);
+}
+
 .app-sidebar .app-nav {
   flex: 1;
   min-height: 0;

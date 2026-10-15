@@ -1,8 +1,12 @@
 @model Inventario.Web.Models.ProductIndexViewModel
+@using Inventario.Contracts.Security
+@using Inventario.Web.Security
 @{
     ViewData["Title"] = "Productos";
     var q = Model.Query;
     var result = Model.Result;
+    var canCreate = PermissionClaims.Has(User, PermissionCodes.ProductosCrear);
+    var canEdit = PermissionClaims.Has(User, PermissionCodes.ProductosEditar);
     var filters = await Html.PartialAsync("Products/_ProductFilters", Model);
     var filterBar = new FilterBarModel
     {
@@ -61,6 +65,16 @@
 
 <div class="page-toolbar">
     <h1 class="app-page-title page-toolbar__title">Productos</h1>
+    @if (canCreate)
+    {
+        <button type="button"
+                class="btn btn-primary"
+                data-modal-open="app-action-modal"
+                data-modal-title="Nuevo producto"
+                data-modal-url="@Url.Action("CreateForm", "Products")">
+            Nuevo producto
+        </button>
+    }
 </div>
 
 <div data-list-page data-list-navigate="reload">
@@ -95,6 +109,10 @@
                             <th class="data-table__num"><a class="data-table__sort" href="@SortUrl("stock")">Existencia@(Ind("stock"))</a></th>
                             <th>Estado stock</th>
                             <th>Estatus</th>
+                            @if (canEdit)
+                            {
+                                <th class="data-table__actions"><span class="visually-hidden">Acciones</span></th>
+                            }
                         </tr>
                     </thead>
                     <tbody>
@@ -117,6 +135,18 @@
                                     @item.StatusName
                                 </span>
                             </td>
+                            @if (canEdit)
+                            {
+                                <td class="data-table__actions">
+                                    <button type="button"
+                                            class="btn btn-ghost btn-sm"
+                                            data-modal-open="app-action-modal"
+                                            data-modal-title="Editar producto"
+                                            data-modal-url="@Url.Action("EditForm", "Products", new { id = item.Id })">
+                                        Editar
+                                    </button>
+                                </td>
+                            }
                         </tr>
                     }
                     </tbody>

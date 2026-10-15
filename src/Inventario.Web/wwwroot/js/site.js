@@ -274,7 +274,68 @@
     }
   }
 
-  function openModal(idOrElement, options = {}) {
+  function wireModalBody(dialog) {
+    const body = dialog?.querySelector("[data-modal-body]");
+    if (!body) return;
+    const form = body.querySelector("form");
+    parseUnobtrusive(form);
+    const primary = dialog.querySelector("[data-modal-primary]");
+    if (primary instanceof HTMLButtonElement && form?.id) {
+      primary.setAttribute("form", form.id);
+      primary.hidden = false;
+    } else if (primary instanceof HTMLButtonElement && !form) {
+      primary.hidden = true;
+    }
+    if (window.InventarioUi?.filters?.initCatalogLookups) {
+      window.InventarioUi.filters.initCatalogLookups(body, () => {});
+    }
+  }
+
+  async function loadModalUrl(dialog, url) {
+    window.InventarioUi.showLoading(true);
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          Accept: "text/html"
+        },
+        credentials: "same-origin"
+      });
+      if (response.status === 401) {
+        window.location.href = "/Account/Login?sessionExpired=true";
+        return false;
+      }
+      if (response.status === 403) {
+        window.location.href = "/Account/AccessDenied";
+        return false;
+      }
+      if (!response.ok) {
+        notify(
+          "error",
+          uiMessage("data-msg-modal-failed", "No se pudo abrir el formulario. Intenta de nuevo.")
+        );
+        return false;
+      }
+      const html = await response.text();
+      const body = dialog.querySelector("[data-modal-body]");
+      if (body) {
+        body.innerHTML = html;
+      }
+      wireModalBody(dialog);
+      return true;
+    } catch {
+      notify(
+        "error",
+        uiMessage("data-msg-connection", "No hay conexión con el servidor. Comprueba la red e inténtalo de nuevo.")
+      );
+      return false;
+    } finally {
+      window.InventarioUi.hideLoading();
+    }
+  }
+
+  async function openModal(idOrElement, options = {}) {
     const dialog = resolveActionModal(idOrElement);
     if (!dialog || typeof dialog.showModal !== "function") {
       return;
@@ -288,6 +349,13 @@
       const titleEl = dialog.querySelector("[data-modal-title]");
       if (titleEl) {
         titleEl.textContent = options.title;
+      }
+    }
+
+    if (typeof options.url === "string" && options.url) {
+      const loaded = await loadModalUrl(dialog, options.url);
+      if (!loaded) {
+        return;
       }
     }
 
@@ -373,12 +441,12 @@
         const body = dialog?.querySelector("[data-modal-body]");
         if (body) {
           body.innerHTML = html;
-          const newForm = body.querySelector("form");
-          parseUnobtrusive(newForm);
         }
-        if (dialog && !dialog.open) {
-          openModal(dialog);
-        } else if (dialog) {
+        if (dialog) {
+          wireModalBody(dialog);
+          if (!dialog.open) {
+            dialog.showModal();
+          }
           focusModal(dialog);
         }
         return;
@@ -717,7 +785,11 @@
         menu.open = false;
       }
       const title = openEl.getAttribute("data-modal-title") || undefined;
-      openModal(openEl.getAttribute("data-modal-open"), title ? { title } : {});
+      const url = openEl.getAttribute("data-modal-url") || undefined;
+      void openModal(openEl.getAttribute("data-modal-open"), {
+        ...(title ? { title } : {}),
+        ...(url ? { url } : {})
+      });
       return;
     }
 

@@ -1,6 +1,9 @@
+using Inventario.ApiClient.Auth;
 using Inventario.ApiClient.Products;
 using Inventario.Contracts.Products;
 using Inventario.Contracts.Security;
+using Inventario.Web.Auth;
+using Inventario.Web.Errors;
 using Inventario.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +12,9 @@ namespace Inventario.Web.Controllers;
 
 [Authorize(Policy = PermissionCodes.ProductosVer)]
 [Route("products")]
-public sealed class ProductsController(IInventarioProductsApi productsApi) : Controller
+public sealed class ProductsController(
+    IInventarioProductsApi productsApi,
+    AuthSessionService authSession) : Controller
 {
     [HttpGet("")]
     [HttpGet("index")]
@@ -62,6 +67,202 @@ public sealed class ProductsController(IInventarioProductsApi productsApi) : Con
             StatusFilterAll = statusAll
         });
     }
+
+    [HttpGet("create")]
+    [Authorize(Policy = PermissionCodes.ProductosCrear)]
+    public IActionResult CreateForm() =>
+        PartialView("_ProductCreateForm", new ProductCreateFormModel());
+
+    [HttpPost("create")]
+    [Authorize(Policy = PermissionCodes.ProductosCrear)]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(
+        ProductCreateFormModel model,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ProductFormResult("_ProductCreateForm", model, 400);
+        }
+
+        try
+        {
+            await productsApi.CreateAsync(model.ToRequest(), cancellationToken);
+            return Json(new
+            {
+                refresh = true,
+                notify = new { type = "success", message = "Producto creado." }
+            });
+        }
+        catch (InventarioApiException ex)
+        {
+            return await HandleProductFormApiErrorAsync(
+                "_ProductCreateForm",
+                model,
+                ex,
+                MapCreateField,
+                cancellationToken);
+        }
+        catch (HttpRequestException)
+        {
+            ModelState.AddModelError(string.Empty, WebUiMessages.ConnectionFailed);
+            return ProductFormResult("_ProductCreateForm", model, 400);
+        }
+        catch (TaskCanceledException)
+        {
+            ModelState.AddModelError(string.Empty, WebUiMessages.Timeout);
+            return ProductFormResult("_ProductCreateForm", model, 400);
+        }
+    }
+
+    [HttpGet("edit/{id:int}")]
+    [Authorize(Policy = PermissionCodes.ProductosEditar)]
+    public async Task<IActionResult> EditForm(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var detail = await productsApi.GetByIdAsync(id, cancellationToken);
+            return PartialView("_ProductEditForm", ProductEditFormModel.FromDetail(detail));
+        }
+        catch (InventarioApiException ex)
+        {
+            // El filtro global maneja 401/403/404 de página; aquí devolvemos HTML simple para modal.
+            Response.StatusCode = ex.StatusCode is >= 400 and < 600 ? ex.StatusCode : 404;
+            return Content(
+                $"<p class=\"form-error\">{ex.Error.Detail ?? WebUiMessages.Unexpected}</p>",
+                "text/html");
+        }
+    }
+
+    [HttpPost("edit/{id:int}")]
+    [Authorize(Policy = PermissionCodes.ProductosEditar)]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(
+        int id,
+        ProductEditFormModel model,
+        CancellationToken cancellationToken)
+    {
+        model.Id = id;
+
+        if (!ModelState.IsValid)
+        {
+            return ProductFormResult("_ProductEditForm", model, 400);
+        }
+
+        try
+        {
+            await productsApi.UpdateAsync(id, model.ToRequest(), cancellationToken);
+            return Json(new
+            {
+                refresh = true,
+                notify = new { type = "success", message = "Producto actualizado." }
+            });
+        }
+        catch (InventarioApiException ex)
+        {
+            return await HandleProductFormApiErrorAsync(
+                "_ProductEditForm",
+                model,
+                ex,
+                MapEditField,
+                cancellationToken);
+        }
+        catch (HttpRequestException)
+        {
+            ModelState.AddModelError(string.Empty, WebUiMessages.ConnectionFailed);
+            return ProductFormResult("_ProductEditForm", model, 400);
+        }
+        catch (TaskCanceledException)
+        {
+            ModelState.AddModelError(string.Empty, WebUiMessages.Timeout);
+            return ProductFormResult("_ProductEditForm", model, 400);
+        }
+    }
+
+    private async Task<IActionResult> HandleProductFormApiErrorAsync(
+        string partialName,
+        object model,
+        InventarioApiException ex,
+        Func<string, string> mapField,
+        CancellationToken cancellationToken)
+    {
+        var translation = ApiErrorTranslator.Translate(ex.Error, ApiErrorSurface.Form);
+
+        switch (translation.Disposition)
+        {
+            case ApiErrorDisposition.ApplyModelState:
+                ApiErrorTranslator.ApplyToModelState(ModelState, translation, mapField);
+                return ProductFormResult(partialName, model, 400);
+
+            case ApiErrorDisposition.FormMessage:
+            case ApiErrorDisposition.TempDataError:
+                ModelState.AddModelError(
+                    string.Empty,
+                    translation.Message ?? ex.Error.Detail ?? WebUiMessages.Unexpected);
+                return ProductFormResult(
+                    partialName,
+                    model,
+                    ex.StatusCode is >= 400 and < 600 ? ex.StatusCode : 400);
+
+            case ApiErrorDisposition.RedirectLoginSessionExpired:
+                await authSession.SignOutAsync(cancellationToken);
+                if (IsModalAjaxRequest())
+                {
+                    return Json(new
+                    {
+                        redirectUrl = Url.Action("Login", "Account", new { sessionExpired = true })
+                    });
+                }
+
+                return RedirectToAction("Login", "Account", new { sessionExpired = true });
+
+            case ApiErrorDisposition.RedirectAccessDenied:
+                if (IsModalAjaxRequest())
+                {
+                    return Json(new { redirectUrl = Url.Action("AccessDenied", "Account") });
+                }
+
+                return RedirectToAction("AccessDenied", "Account");
+
+            default:
+                ModelState.AddModelError(string.Empty, WebUiMessages.Unexpected);
+                return ProductFormResult(partialName, model, 400);
+        }
+    }
+
+    private IActionResult ProductFormResult(string partialName, object model, int statusCode)
+    {
+        Response.StatusCode = statusCode;
+        return PartialView(partialName, model);
+    }
+
+    private bool IsModalAjaxRequest() =>
+        string.Equals(
+            Request.Headers.XRequestedWith.ToString(),
+            "XMLHttpRequest",
+            StringComparison.OrdinalIgnoreCase);
+
+    private static string MapCreateField(string apiKey) =>
+        apiKey.ToLowerInvariant() switch
+        {
+            "code" => nameof(ProductCreateFormModel.Code),
+            "name" => nameof(ProductCreateFormModel.Name),
+            "categoryid" => nameof(ProductCreateFormModel.CategoryId),
+            "unitprice" => nameof(ProductCreateFormModel.UnitPrice),
+            "minstock" => nameof(ProductCreateFormModel.MinStock),
+            _ => apiKey
+        };
+
+    private static string MapEditField(string apiKey) =>
+        apiKey.ToLowerInvariant() switch
+        {
+            "name" => nameof(ProductEditFormModel.Name),
+            "categoryid" => nameof(ProductEditFormModel.CategoryId),
+            "unitprice" => nameof(ProductEditFormModel.UnitPrice),
+            "minstock" => nameof(ProductEditFormModel.MinStock),
+            "rowversion" => nameof(ProductEditFormModel.RowVersion),
+            _ => apiKey
+        };
 
     /// <summary>
     /// Sin clave → Activo (1). statusId= (vacío) → todos. Valor numérico → filtro.

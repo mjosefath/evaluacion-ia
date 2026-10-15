@@ -99,6 +99,12 @@ public sealed class AccountController(
     public IActionResult ChangePassword() =>
         RedirectToAction(nameof(HomeController.Index), "Home");
 
+    /// <summary>Partial del formulario para cargar el action-modal (data-modal-url).</summary>
+    [HttpGet]
+    [Authorize]
+    public IActionResult ChangePasswordForm() =>
+        PartialView("~/Views/Account/_ChangePasswordForm.cshtml", new ChangePasswordViewModel());
+
     /// <summary>
     /// POST del modal: AJAX → partial HTML con errores o JSON { redirectUrl }.
     /// </summary>

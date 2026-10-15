@@ -12,4 +12,13 @@ public interface IInventarioProductsApi
     Task<ProductDetailDto> GetByIdAsync(
         int id,
         CancellationToken cancellationToken = default);
+
+    Task<ProductDetailDto> CreateAsync(
+        CreateProductRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<ProductDetailDto> UpdateAsync(
+        int id,
+        UpdateProductRequest request,
+        CancellationToken cancellationToken = default);
 }

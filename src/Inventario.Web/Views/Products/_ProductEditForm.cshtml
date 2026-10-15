@@ -1,0 +1,65 @@
+@model Inventario.Web.Models.ProductEditFormModel
+@*
+  Edición de producto en action-modal. Código y existencia solo lectura; RowVersion oculto.
+*@
+<form id="product-form"
+      asp-controller="Products"
+      asp-action="Edit"
+      asp-route-id="@Model.Id"
+      method="post"
+      class="action-modal-form"
+      data-modal-ajax-form
+      novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="RowVersion" />
+    <input type="hidden" asp-for="Id" />
+
+    <div asp-validation-summary="ModelOnly" class="validation-summary-errors" role="alert"></div>
+
+    <div class="form-field">
+        <label class="form-label" asp-for="Code">Código</label>
+        <input class="form-input" asp-for="Code" readonly tabindex="-1" />
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" asp-for="Name">Nombre</label>
+        <input class="form-input"
+               asp-for="Name"
+               maxlength="150"
+               autocomplete="off"
+               data-modal-initial-focus />
+        <span class="form-error" asp-validation-for="Name"></span>
+    </div>
+
+    @{
+        ViewData["Name"] = "CategoryId";
+        ViewData["Label"] = "Categoría";
+        ViewData["Catalog"] = "categories";
+        ViewData["ActiveOnly"] = true;
+        ViewData["Placeholder"] = "Buscar categoría…";
+        ViewData["Value"] = Model.CategoryId > 0 ? Model.CategoryId.ToString() : null;
+        ViewData["ValueLabel"] = Model.CategoryName;
+        ViewData["FilterDefault"] = null;
+        ViewData["FilterEmpty"] = null;
+    }
+    <partial name="Ui/_CatalogLookup" />
+    <span class="form-error" asp-validation-for="CategoryId"></span>
+
+    <div class="form-field">
+        <label class="form-label" asp-for="UnitPrice">Precio unitario</label>
+        <input class="form-input" asp-for="UnitPrice" inputmode="decimal" />
+        <span class="form-error" asp-validation-for="UnitPrice"></span>
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" asp-for="MinStock">Stock mínimo</label>
+        <input class="form-input" asp-for="MinStock" inputmode="numeric" />
+        <span class="form-error" asp-validation-for="MinStock"></span>
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" asp-for="Stock">Existencia</label>
+        <input class="form-input" asp-for="Stock" readonly tabindex="-1" />
+        <p class="form-hint">Solo lectura. Se actualiza con movimientos.</p>
+    </div>
+</form>

@@ -1,8 +1,8 @@
 @*
-  Modal de acción genérico (T03-01/T03-02).
-  Abrir: InventarioUi.openModal(...) o data-modal-open + data-modal-title.
-  Cerrar: closeModal / data-modal-close / Esc. Backdrop no cierra (evita perder el formulario).
-  ChangePassword: form en el body; Guardar usa form="change-password-form" (submit AJAX).
+  Modal de acción genérico (T03-01/T03-02 / T02-15).
+  Abrir: data-modal-open + data-modal-title + data-modal-url (GET partial HTML).
+  Cerrar: closeModal / data-modal-close / Esc. Backdrop no cierra.
+  Guardar: data-modal-primary con form= id del formulario cargado (AJAX).
 *@
 <dialog id="app-action-modal"
         class="action-modal ui-dialog"
@@ -14,14 +14,14 @@
             <h2 id="app-action-modal-title" class="action-modal-title" data-modal-title>Acción</h2>
         </header>
         <div class="action-modal-body" data-modal-body>
-            <partial name="~/Views/Account/_ChangePasswordForm.cshtml" model="new ChangePasswordViewModel()" />
+            @* Contenido cargado vía data-modal-url *@
         </div>
         <footer class="action-modal-footer">
             <button type="button" class="btn btn-outline" data-modal-close>Cancelar</button>
             <button type="submit"
                     class="btn btn-primary"
-                    form="change-password-form"
-                    data-modal-primary>
+                    data-modal-primary
+                    hidden>
                 Guardar
             </button>
         </footer>
