@@ -2,6 +2,7 @@ using Inventario.ApiClient.Auth;
 using Inventario.ApiClient.Catalogs;
 using Inventario.ApiClient.Movements;
 using Inventario.ApiClient.Products;
+using Inventario.ApiClient.Reports;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Inventario.ApiClient;
@@ -43,6 +44,12 @@ public static class DependencyInjection
             .AddHttpMessageHandler<AuthRefreshHandler>();
 
         services.AddHttpClient<IInventarioMovementsApi, InventarioMovementsApi>(client =>
+            {
+                client.BaseAddress = baseAddress;
+            })
+            .AddHttpMessageHandler<AuthRefreshHandler>();
+
+        services.AddHttpClient<IInventarioReportsApi, InventarioReportsApi>(client =>
             {
                 client.BaseAddress = baseAddress;
             })

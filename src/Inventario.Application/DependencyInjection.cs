@@ -3,6 +3,7 @@ using Inventario.Application.Catalogs;
 using Inventario.Application.Movements;
 using Inventario.Application.Options;
 using Inventario.Application.Products;
+using Inventario.Application.Reports;
 using Inventario.Application.Security;
 using Inventario.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<IProductCommandService, ProductCommandService>();
         services.AddScoped<IMovementCommandService, MovementCommandService>();
         services.AddScoped<IMovementQueryService, MovementQueryService>();
+        services.AddScoped<IReportQueryService, ReportQueryService>();
 
         return services;
     }

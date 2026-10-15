@@ -1250,6 +1250,33 @@ span.form-error:empty {
   font-weight: var(--font-weight-medium);
 }
 
+.report-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: var(--spacing-16);
+  padding: var(--spacing-12) var(--spacing-16);
+  border-top: 1px solid var(--color-ash);
+  background: var(--color-paper-mist);
+  position: sticky;
+  bottom: 0;
+}
+
+.report-total__label {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-steel);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.report-total__value {
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-charcoal);
+  font-variant-numeric: tabular-nums;
+}
+
 .app-sidebar .app-nav {
   flex: 1;
   min-height: 0;
