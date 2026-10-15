@@ -26,12 +26,11 @@ public sealed class UserProfileService(InventarioSystemDbContext systemDb) : IUs
 
         var profile = new UserProfile
         {
-            Id = Guid.NewGuid(),
             IdentityUserId = identityUserId,
             DisplayName = string.IsNullOrWhiteSpace(userName) ? identityUserId : userName,
-            IsActive = true,
+            StatusId = RecordStatusIds.Active,
             CreatedAtUtc = DateTime.UtcNow,
-            CreatedByIdentityUserId = null
+            CreatedBy = null
         };
 
         systemDb.UserProfiles.Add(profile);

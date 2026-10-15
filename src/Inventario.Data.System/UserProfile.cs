@@ -5,19 +5,21 @@ namespace Inventario.Data.System;
 /// </summary>
 public sealed class UserProfile
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
 
     public string IdentityUserId { get; set; } = null!;
 
     public string DisplayName { get; set; } = null!;
 
-    public bool IsActive { get; set; } = true;
+    public byte StatusId { get; set; } = RecordStatusIds.Active;
 
     public DateTime CreatedAtUtc { get; set; }
 
-    public string? CreatedByIdentityUserId { get; set; }
+    public int? CreatedBy { get; set; }
 
-    public DateTime? ModifiedAtUtc { get; set; }
+    public DateTime? UpdatedAtUtc { get; set; }
 
-    public string? ModifiedByIdentityUserId { get; set; }
+    public int? UpdatedBy { get; set; }
+
+    public byte[] RowVersion { get; set; } = null!;
 }

@@ -1,4 +1,5 @@
 using Inventario.Data.System;
+using Microsoft.EntityFrameworkCore;
 
 namespace Inventario.Application.Services;
 
@@ -13,11 +14,20 @@ public sealed class AccessLogWriter(InventarioSystemDbContext systemDb) : IAcces
         string? detail = null,
         CancellationToken cancellationToken = default)
     {
+        int? createdBy = null;
+        if (!string.IsNullOrWhiteSpace(identityUserId))
+        {
+            createdBy = await systemDb.UserProfiles.AsNoTracking()
+                .Where(p => p.IdentityUserId == identityUserId)
+                .Select(p => (int?)p.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
         // Detail nunca debe contener contraseñas ni tokens (R3).
         systemDb.AccessLogs.Add(new AccessLog
         {
-            OccurredAtUtc = DateTime.UtcNow,
-            IdentityUserId = identityUserId,
+            CreatedAtUtc = DateTime.UtcNow,
+            CreatedBy = createdBy,
             UserNameAttempted = Truncate(userNameAttempted, 256),
             EventType = eventType,
             IpAddress = Truncate(ipAddress, 64),

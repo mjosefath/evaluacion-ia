@@ -30,12 +30,13 @@ Sobre **InventarioIdentity**:
 1. `database/identity/001_CreateIdentitySchema.sql`
 2. `database/identity/002_SeedRoles.sql`
 
-Sobre **Inventario**:
+Sobre **Inventario** (BD Sistema; recrear si cambió el esquema):
 
-1. `database/system/001_CreateUserProfiles.sql`
-2. `database/system/002_CreatePermissions.sql`
-3. `database/system/003_CreateAccessLogs.sql`
-4. `database/system/004_SeedPermissionStub.sql`
+1. `database/system/001_CreateRecordStatuses.sql`
+2. `database/system/002_CreateUserProfiles.sql`
+3. `database/system/003_CreatePermissions.sql`
+4. `database/system/004_CreateAccessLogs.sql`
+5. `database/system/005_SeedPermissionStub.sql`
 
 Los scripts son vírgenes (CREATE/INSERT). Si cambia un script de esquema, **recrea la BD** y vuelve a ejecutarlos en orden (sin ALTER en desarrollo).
 

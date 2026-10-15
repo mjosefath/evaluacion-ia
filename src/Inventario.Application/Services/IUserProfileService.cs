@@ -7,7 +7,7 @@ public interface IUserProfileService
     Task<UserProfile?> FindByIdentityUserIdAsync(string identityUserId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Obtiene el perfil o lo crea con DisplayName = userName e IsActive = true (idempotente).
+    /// Obtiene el perfil o lo crea con DisplayName = userName y StatusId = Activo (idempotente).
     /// </summary>
     Task<UserProfile> GetOrCreateAsync(string identityUserId, string userName, CancellationToken cancellationToken = default);
 }

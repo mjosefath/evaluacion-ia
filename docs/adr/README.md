@@ -12,3 +12,4 @@ Decisiones de arquitectura. Estilo: contexto, decisión, alternativas, consecuen
 | [006](006-shell-responsive-y-dark-mode.md) | Shell responsive y dark mode | Aceptado |
 | [007](007-sidebar-icon-rail.md) | Sidebar icon-rail vs drawer | Aceptado |
 | [008](008-result-apiproblem.md) | Result, ApiProblem y estándar de errores | Aceptado |
+| [009](009-estandar-tablas-sistema.md) | Estándar de tablas BD Sistema (E1–E11) | Aceptado |

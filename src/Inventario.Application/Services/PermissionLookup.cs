@@ -20,9 +20,12 @@ public sealed class PermissionLookup(InventarioSystemDbContext systemDb) : IPerm
         }
 
         return await systemDb.RolePermissions.AsNoTracking()
-            .Where(rp => roles.Contains(rp.RoleName))
+            .Where(rp =>
+                roles.Contains(rp.RoleName)
+                && rp.StatusId == RecordStatusIds.Active)
             .Join(
-                systemDb.Permissions.AsNoTracking(),
+                systemDb.Permissions.AsNoTracking()
+                    .Where(p => p.StatusId == RecordStatusIds.Active),
                 rp => rp.PermissionId,
                 p => p.Id,
                 (_, p) => p.Code)

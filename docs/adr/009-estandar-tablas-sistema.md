@@ -1,0 +1,41 @@
+# ADR-009 — Estándar de tablas de la BD Sistema (E1–E11)
+
+**Estado:** Aceptado (2026-10-14)
+
+## Contexto
+
+El análisis 02 define un molde único de columnas y reglas (E1–E11) para toda la BD Sistema. Las tablas de `01` (UserProfiles, Permissions, RolePermissions, AccessLogs) no lo cumplían. Se autorizó recrear la BD con scripts CREATE y alinear el código (T02-05). Categories/MovementTypes/Products quedan para tareas siguientes; este ADR fija el molde.
+
+## Decisión
+
+| Tema | Decisión |
+|------|----------|
+| Tipos de tabla | **Mutable** (se edita; baja lógica) vs **Inmutable** (solo insert; p. ej. AccessLogs, movimientos). |
+| Llave | `int IDENTITY` PK; `bigint IDENTITY` en alto volumen (AccessLogs, movimientos). |
+| Borrado lógico | `StatusId` `tinyint` FK → `RecordStatuses` (1 = Activo, 2 = Inactivo). Solo mutables. |
+| Auditoría mutable | `CreatedAtUtc`, `CreatedBy`, `UpdatedAtUtc`, `UpdatedBy`, `RowVersion`. |
+| Auditoría inmutable | Solo `CreatedAtUtc` + `CreatedBy` (fecha/responsable del evento). |
+| Fechas | `datetime2(3)` UTC, sufijo `Utc`. |
+| FK | `NO ACTION` (nada de `ON DELETE CASCADE`). |
+| Nombres | Inglés PascalCase; plural; restricciones `PK_` / `FK_` / `UX_` / `IX_` / `DF_` (E9). |
+| RecordStatuses | Catálogo de sistema: `Id` tinyint, `Code` varchar único, `Name`; seed Activo/Inactivo. Sin `StatusId` propio. |
+| UserProfiles | `Id` int; `IdentityUserId` (vínculo Identity, UX); `StatusId`; auditoría + `RowVersion`; `CreatedBy`/`UpdatedBy` FK self. |
+| Permissions / RolePermissions | Mutables con estándar completo; RolePermissions tiene `Id` + UX `(RoleName, PermissionId)`; revocar = `StatusId = 2`. |
+| AccessLogs | Inmutable; `CreatedBy` = `UserProfiles.Id` (NULL si no hay perfil). Sin `IdentityUserId` ni `OccurredAtUtc`. |
+| Scripts | Solo CREATE/INSERT vírgenes bajo `database/system/`; recrear BD ante cambio de esquema. |
+
+## Alternativas descartadas
+
+| Alternativa | Por qué no |
+|-------------|------------|
+| `IsActive` bit por tabla | Dos patrones; el contexto pide catálogo Activo/Inactivo. |
+| CASCADE en RolePermissions | Viola E2; baja lógica con StatusId. |
+| GUID como PK de UserProfiles | Rompe el molde int IDENTITY y las FK `CreatedBy`. |
+| ALTER / migraciones EF al arrancar | Convención del proyecto: scripts vírgenes + recrear. |
+
+## Consecuencias
+
+- Toda tabla nueva de Sistema copia este molde (mutable o inmutable).
+- Application usa `StatusId == RecordStatusIds.Active` (no `IsActive`).
+- AccessLogs resuelve `CreatedBy` desde `IdentityUserId` → `UserProfiles.Id`.
+- Ampliar el molde (p. ej. StatusId en RecordStatuses) requiere adenda.

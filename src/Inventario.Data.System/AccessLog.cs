@@ -1,15 +1,16 @@
 namespace Inventario.Data.System;
 
 /// <summary>
-/// Bitácora de accesos. EventType: LoginSuccess, LoginFailure, Lockout, Logout, TokenRefresh, PasswordChanged.
+/// Bitácora de accesos (inmutable). EventType: LoginSuccess, LoginFailure, Lockout, Logout, TokenRefresh, PasswordChanged.
 /// </summary>
 public sealed class AccessLog
 {
     public long Id { get; set; }
 
-    public DateTime OccurredAtUtc { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
 
-    public string? IdentityUserId { get; set; }
+    /// <summary>FK a UserProfiles.Id; NULL si no hay perfil (p. ej. login fallido).</summary>
+    public int? CreatedBy { get; set; }
 
     public string? UserNameAttempted { get; set; }
 

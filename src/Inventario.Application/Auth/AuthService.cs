@@ -1,6 +1,7 @@
 using Inventario.Application.Results;
 using Inventario.Application.Services;
 using Inventario.Contracts.Auth;
+using Inventario.Data.System;
 using Microsoft.AspNetCore.Identity;
 
 namespace Inventario.Application.Auth;
@@ -79,7 +80,7 @@ public sealed class AuthService(
         }
 
         var profile = await userProfiles.GetOrCreateAsync(user.Id, user.UserName ?? userName, cancellationToken);
-        if (!profile.IsActive)
+        if (profile.StatusId != RecordStatusIds.Active)
         {
             return Result<AuthTokenResponse>.Failure(
                 ErrorCodes.AuthInactiveProfile,
@@ -135,7 +136,7 @@ public sealed class AuthService(
             user.UserName ?? user.Id,
             cancellationToken);
 
-        if (!profile.IsActive)
+        if (profile.StatusId != RecordStatusIds.Active)
         {
             return Result<AuthTokenResponse>.Failure(
                 ErrorCodes.AuthInactiveProfile,
@@ -270,7 +271,7 @@ public sealed class AuthService(
             user.UserName ?? user.Id,
             cancellationToken);
 
-        if (!profile.IsActive)
+        if (profile.StatusId != RecordStatusIds.Active)
         {
             return Result<MeResponse>.Failure(
                 ErrorCodes.AuthInactiveProfile,
