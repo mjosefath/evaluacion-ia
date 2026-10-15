@@ -1,4 +1,5 @@
 using Inventario.ApiClient.Auth;
+using Inventario.ApiClient.Catalogs;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Inventario.ApiClient;
@@ -6,7 +7,7 @@ namespace Inventario.ApiClient;
 public static class DependencyInjection
 {
     /// <summary>
-    /// Registra IInventarioAuthApi + handler de refresh. La Web debe registrar IAuthTokenStore.
+    /// Registra APIs tipadas + handler de refresh. La Web debe registrar IAuthTokenStore.
     /// </summary>
     public static IServiceCollection AddInventarioApiClient(
         this IServiceCollection services,
@@ -22,6 +23,12 @@ public static class DependencyInjection
         services.AddTransient<AuthRefreshHandler>();
 
         services.AddHttpClient<IInventarioAuthApi, InventarioAuthApi>(client =>
+            {
+                client.BaseAddress = baseAddress;
+            })
+            .AddHttpMessageHandler<AuthRefreshHandler>();
+
+        services.AddHttpClient<IInventarioCatalogsApi, InventarioCatalogsApi>(client =>
             {
                 client.BaseAddress = baseAddress;
             })

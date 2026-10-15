@@ -1,0 +1,49 @@
+@model Inventario.Web.Models.UiDemoFiltersViewModel
+@{
+    ViewData["Title"] = "Demo filtros / selectores";
+    var filters = await Html.PartialAsync("Ui/_DemoCatalogFilters");
+    var filterBar = new FilterBarModel
+    {
+        Search = Model.Search,
+        SearchPlaceholder = "Buscar…",
+        Filters = filters
+    };
+}
+
+<h1 class="app-page-title">Demo filtros / selectores</h1>
+<p class="ui-demo-lead">
+    Infra compartida T02-13 (FL1–FL6, PG7–PG10). Cableado para Productos en T02-14.
+    Los selectores llaman a <code>/catalogs/*</code> (proxy autenticado → API).
+</p>
+
+<div data-list-page data-list-navigate="reload">
+    <partial name="Ui/_FilterBar" model="filterBar" />
+
+    <div class="ui-demo-panel">
+        <p class="ui-demo-panel__title">Estado URL (PG7)</p>
+        <pre class="ui-demo-panel__code" data-ui-demo-query></pre>
+        <p class="ui-demo-hint">Sin tabla de productos todavía — solo partials + lookup.</p>
+    </div>
+
+    <partial name="Ui/_Paginator" model="Model.Paginator" />
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const root = document.querySelector("[data-list-page]");
+            if (root && window.InventarioUi?.filters) {
+                window.InventarioUi.filters.bind(root);
+            }
+            const q = document.querySelector("[data-ui-demo-query]");
+            if (q) {
+                const sync = () => {
+                    q.textContent = window.location.search || "(sin query)";
+                };
+                sync();
+                window.addEventListener("popstate", sync);
+                root?.addEventListener("inventario:filters-changed", sync);
+            }
+        });
+    </script>
+}

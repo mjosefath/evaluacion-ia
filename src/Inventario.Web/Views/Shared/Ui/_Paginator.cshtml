@@ -1,0 +1,90 @@
+@model Inventario.Web.Models.PaginatorModel
+@{
+    var totalPages = Math.Max(Model.TotalPages, 1);
+    var currentPage = Math.Clamp(Model.Page < 1 ? 1 : Model.Page, 1, totalPages);
+    var sizes = new[] { 20, 50, 100 };
+}
+@*
+  Paginador (PG2). data-paginator + InventarioUi.filters / InventarioUi.urlQuery.
+  Atributos data-page / data-page-size para el JS.
+*@
+<nav class="paginator" data-paginator
+     data-page="@currentPage"
+     data-page-size="@Model.PageSize"
+     data-total-rows="@Model.TotalRows"
+     data-total-pages="@Model.TotalPages"
+     data-page-param="@Model.PageParam"
+     data-page-size-param="@Model.PageSizeParam"
+     aria-label="Paginación">
+    <div class="paginator__summary">
+        @if (Model.TotalRows == 0)
+        {
+            <span>Mostrando 0 resultados</span>
+        }
+        else
+        {
+            <span>Mostrando @Model.FromRow–@Model.ToRow de @Model.TotalRows</span>
+        }
+    </div>
+
+    <div class="paginator__controls">
+        <button type="button"
+                class="btn btn-outline paginator__btn"
+                data-paginator-prev
+                aria-label="Página anterior"
+                @(currentPage <= 1 ? "disabled" : null)>
+            Anterior
+        </button>
+
+        <ul class="paginator__pages" data-paginator-pages>
+            @{
+                var windowStart = Math.Max(1, currentPage - 2);
+                var windowEnd = Math.Min(totalPages, windowStart + 4);
+                windowStart = Math.Max(1, windowEnd - 4);
+            }
+            @for (var p = windowStart; p <= windowEnd; p++)
+            {
+                var isCurrent = p == currentPage;
+                <li>
+                    <button type="button"
+                            class="btn @(isCurrent ? "btn-primary" : "btn-outline") paginator__page"
+                            data-paginator-page="@p"
+                            aria-current="@(isCurrent ? "page" : null)"
+                            aria-label="Página @p">
+                        @p
+                    </button>
+                </li>
+            }
+        </ul>
+
+        <button type="button"
+                class="btn btn-outline paginator__btn"
+                data-paginator-next
+                aria-label="Página siguiente"
+                @(currentPage >= totalPages || Model.TotalRows == 0 ? "disabled" : null)>
+            Siguiente
+        </button>
+    </div>
+
+    <div class="paginator__size">
+        <label class="paginator__size-label" for="paginator-page-size">Por página</label>
+        <select id="paginator-page-size"
+                class="form-input paginator__size-select"
+                data-paginator-size
+                data-filter-field="@Model.PageSizeParam"
+                data-filter-label="Por página"
+                data-filter-skip-badge="true">
+            @foreach (var size in sizes)
+            {
+                if (size == Model.PageSize)
+                {
+                    <option value="@size" selected>@size</option>
+                }
+                else
+                {
+                    <option value="@size">@size</option>
+                }
+            }
+        </select>
+    </div>
+</nav>
