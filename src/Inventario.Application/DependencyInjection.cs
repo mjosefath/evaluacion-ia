@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IProductQueryService, ProductQueryService>();
         services.AddScoped<IProductCommandService, ProductCommandService>();
         services.AddScoped<IMovementCommandService, MovementCommandService>();
+        services.AddScoped<IMovementQueryService, MovementQueryService>();
 
         return services;
     }

@@ -1,0 +1,37 @@
+@model Inventario.Web.Models.HistoryIndexViewModel
+@{
+    ViewData["Name"] = "typeId";
+    ViewData["Label"] = "Tipo";
+    ViewData["Catalog"] = "movement-types";
+    ViewData["ActiveOnly"] = false;
+    ViewData["Placeholder"] = "Todos los tipos";
+    ViewData["Value"] = Model.Query.TypeId?.ToString();
+    ViewData["ValueLabel"] = Model.TypeLabel;
+    ViewData["FilterDefault"] = null;
+    ViewData["FilterEmpty"] = null;
+}
+<partial name="Ui/_CatalogLookup" />
+
+<div class="form-field filter-field">
+    <label class="form-label" for="filter-from">Desde</label>
+    <input id="filter-from"
+           type="date"
+           class="form-input"
+           name="from"
+           value="@Model.FromLocal"
+           data-filter-field="from"
+           data-filter-label="Desde"
+           autocomplete="off" />
+</div>
+
+<div class="form-field filter-field">
+    <label class="form-label" for="filter-to">Hasta</label>
+    <input id="filter-to"
+           type="date"
+           class="form-input"
+           name="to"
+           value="@Model.ToLocal"
+           data-filter-field="to"
+           data-filter-label="Hasta"
+           autocomplete="off" />
+</div>

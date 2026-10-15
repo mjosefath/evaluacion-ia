@@ -1,0 +1,142 @@
+@model Inventario.Web.Models.HistoryIndexViewModel
+@{
+    ViewData["Title"] = "Historial";
+    var q = Model.Query;
+    var result = Model.Result;
+    var filters = await Html.PartialAsync("History/_HistoryFilters", Model);
+    var filterBar = new FilterBarModel
+    {
+        Search = q.Search,
+        SearchPlaceholder = "Buscar en historial…",
+        Filters = filters
+    };
+    var paginator = new PaginatorModel
+    {
+        Page = result.Page,
+        PageSize = result.PageSize,
+        TotalRows = result.TotalRows
+    };
+
+    string SortUrl(string column)
+    {
+        var nextDir = string.Equals(q.Sort, column, StringComparison.OrdinalIgnoreCase)
+                      && !string.Equals(q.Dir, "desc", StringComparison.OrdinalIgnoreCase)
+            ? "desc"
+            : "asc";
+
+        var values = new Dictionary<string, string?>
+        {
+            ["page"] = "1",
+            ["pageSize"] = q.PageSize.ToString(),
+            ["sort"] = column,
+            ["dir"] = nextDir
+        };
+        if (!string.IsNullOrWhiteSpace(q.Search))
+        {
+            values["search"] = q.Search;
+        }
+
+        if (q.TypeId.HasValue)
+        {
+            values["typeId"] = q.TypeId.Value.ToString();
+        }
+
+        if (!string.IsNullOrEmpty(Model.FromLocal))
+        {
+            values["from"] = Model.FromLocal;
+        }
+
+        if (!string.IsNullOrEmpty(Model.ToLocal))
+        {
+            values["to"] = Model.ToLocal;
+        }
+
+        return Url.Action("Index", "History", values)!;
+    }
+
+    string Ind(string column) =>
+        !string.Equals(q.Sort, column, StringComparison.OrdinalIgnoreCase)
+            ? ""
+            : string.Equals(q.Dir, "desc", StringComparison.OrdinalIgnoreCase) ? " ↓" : " ↑";
+
+    string FormatEffect(int qty) =>
+        qty > 0 ? $"+{qty}" : qty.ToString();
+}
+
+<div class="page-toolbar">
+    <h1 class="app-page-title page-toolbar__title">Historial</h1>
+</div>
+
+<div data-list-page data-list-navigate="reload">
+    <partial name="Ui/_FilterBar" model="filterBar" />
+
+    <div class="table-panel" data-list-table>
+        @if (result.TotalRows == 0)
+        {
+            <div class="empty-state">
+                @if (!string.IsNullOrWhiteSpace(q.Search))
+                {
+                    <p>No hay resultados para «@q.Search»</p>
+                }
+                else
+                {
+                    <p>No hay resultados con los filtros actuales.</p>
+                }
+                <button type="button" class="btn btn-outline" data-filter-clear>Limpiar filtros</button>
+            </div>
+        }
+        else
+        {
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th><a class="data-table__sort" href="@SortUrl("date")">Fecha@(Ind("date"))</a></th>
+                            <th><a class="data-table__sort" href="@SortUrl("product")">Producto@(Ind("product"))</a></th>
+                            <th><a class="data-table__sort" href="@SortUrl("type")">Tipo@(Ind("type"))</a></th>
+                            <th class="data-table__num">Efecto</th>
+                            <th class="data-table__num">Antes</th>
+                            <th class="data-table__num">Después</th>
+                            <th>Motivo</th>
+                            <th>Responsable</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in result.Items)
+                    {
+                        var local = item.CreatedAtUtc.ToLocalTime();
+                        <tr>
+                            <td>@local.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <span class="data-table__primary">@item.ProductCode</span>
+                                <span class="data-table__secondary">@item.ProductName</span>
+                            </td>
+                            <td>@item.MovementTypeName</td>
+                            <td class="data-table__num @(item.Quantity < 0 ? "data-table__neg" : "data-table__pos")">
+                                @FormatEffect(item.Quantity)
+                            </td>
+                            <td class="data-table__num">@item.StockBefore</td>
+                            <td class="data-table__num">@item.StockAfter</td>
+                            <td>@(item.Reason ?? "—")</td>
+                            <td>@(item.CreatedByName ?? "—")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <partial name="Ui/_Paginator" model="paginator" />
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const root = document.querySelector("[data-list-page]");
+            if (root && window.InventarioUi?.filters) {
+                window.InventarioUi.filters.bind(root);
+            }
+        });
+    </script>
+}
