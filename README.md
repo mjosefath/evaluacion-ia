@@ -25,35 +25,37 @@ sqlcmd -S localhost -Q "CREATE DATABASE Inventario"
 
 ## 3. Ejecutar scripts SQL (en orden)
 
+Cinco scripts vírgenes (CREATE/INSERT). Si ya hay objetos, primero los `000_DropAll` (o borra/recrea la BD).
+
+### Limpiar (opcional, desarrollo)
+
+```bash
+sqlcmd -S localhost -d InventarioIdentity -i database/identity/000_DropAll.sql
+sqlcmd -S localhost -d Inventario -i database/system/000_DropAll.sql
+```
+
+### Crear (orden fijo)
+
 Sobre **InventarioIdentity**:
 
-1. `database/identity/001_CreateIdentitySchema.sql`
-2. `database/identity/002_SeedRoles.sql`
+1. `database/identity/001_Identity.sql` — esquema AspNet* + RefreshTokens + rol Administrador
 
-Sobre **Inventario** (BD Sistema; recrear si cambió el esquema):
+Sobre **Inventario** (BD Sistema):
 
-1. `database/system/001_CreateRecordStatuses.sql`
-2. `database/system/002_CreateUserProfiles.sql`
-3. `database/system/003_CreatePermissions.sql`
-4. `database/system/004_CreateAccessLogs.sql`
-5. `database/system/005_SeedPermissionStub.sql`
-6. `database/system/006_CreateCategories.sql`
-7. `database/system/007_CreateMovementTypes.sql`
-8. `database/system/008_CreateProducts.sql`
-9. `database/system/009_CreateInventoryMovements.sql`
-10. `database/system/010_CreateVwProductStock.sql`
-11. `database/system/011_SeedProductsAndMovements.sql`
-12. `database/system/012_SeedInventoryPermissions.sql`
-13. `database/system/013_CreateFnEscapeLikePattern.sql`
-14. `database/system/014_usp_Categories_List.sql`
-15. `database/system/015_usp_MovementTypes_List.sql`
-16. `database/system/016_usp_RecordStatuses_List.sql`
-17. `database/system/017_usp_Products_Lookup.sql`
-18. `database/system/018_usp_Products_List.sql`
-19. `database/system/019_usp_InventoryMovements_List.sql`
-20. `database/system/020_usp_Report_Stock.sql`
+1. `database/system/001_Schema.sql` — tablas + `vw_ProductStock` (+ seed mínimo `RecordStatuses`)
+2. `database/system/002_Seed.sql` — categorías, tipos de movimiento y permisos
+3. `database/system/003_Data.sql` — productos y movimientos de carga inicial
+4. `database/system/004_Procedures.sql` — función LIKE + procedimientos de listado/reporte
 
-Los scripts son vírgenes (CREATE/INSERT). Si cambia un script de esquema, **recrea la BD** y vuelve a ejecutarlos en orden (sin ALTER en desarrollo).
+```bash
+sqlcmd -S localhost -d InventarioIdentity -i database/identity/001_Identity.sql
+sqlcmd -S localhost -d Inventario -i database/system/001_Schema.sql
+sqlcmd -S localhost -d Inventario -i database/system/002_Seed.sql
+sqlcmd -S localhost -d Inventario -i database/system/003_Data.sql
+sqlcmd -S localhost -d Inventario -i database/system/004_Procedures.sql
+```
+
+Sin ALTER en desarrollo: drop + create (o recrear la BD) si cambia el esquema.
 
 ## 4. User-secrets (API)
 

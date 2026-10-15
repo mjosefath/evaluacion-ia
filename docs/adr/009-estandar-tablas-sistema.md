@@ -22,7 +22,7 @@ El análisis 02 define un molde único de columnas y reglas (E1–E11) para toda
 | UserProfiles | `Id` int; `IdentityUserId` (vínculo Identity, UX); `StatusId`; auditoría + `RowVersion`; `CreatedBy`/`UpdatedBy` FK self. |
 | Permissions / RolePermissions | Mutables con estándar completo; RolePermissions tiene `Id` + UX `(RoleName, PermissionId)`; revocar = `StatusId = 2`. |
 | AccessLogs | Inmutable; `CreatedBy` = `UserProfiles.Id` (NULL si no hay perfil). Sin `IdentityUserId` ni `OccurredAtUtc`. |
-| Scripts | Solo CREATE/INSERT vírgenes bajo `database/system/`; recrear BD ante cambio de esquema. |
+| Scripts | CREATE/INSERT vírgenes consolidados: Identity `001_Identity.sql`; Sistema `001_Schema` → `002_Seed` → `003_Data` → `004_Procedures`. Recrear BD ante cambio de esquema. |
 
 ## Alternativas descartadas
 
@@ -68,3 +68,17 @@ Listados y reporte vía `usp_*_List` / `usp_Report_Stock` / `usp_Products_Lookup
 | InventoryMovements | Inmutable `bigint`; CKs de stock; índices ProductId+Id DESC INCLUDE StockAfter y CreatedAtUtc DESC. |
 | vw_ProductStock | `ProductId` + `Stock` = último `StockAfter` (0 si no hay movimientos). |
 | Seed | 5 productos + ENTRADA inicial; `CreatedBy` del perfil si existe, o se completa en DevelopmentAdminSeeder. |
+
+## Adenda (2026-10-14) — Scripts SQL consolidados
+
+Para ejecutar menos archivos sin cambiar el contenido funcional:
+
+| BD | Script | Contenido |
+|----|--------|-----------|
+| Identity | `database/identity/001_Identity.sql` | Esquema AspNet* / RefreshTokens + rol Administrador |
+| Sistema | `database/system/001_Schema.sql` | Tablas + `vw_ProductStock` (+ `RecordStatuses` Activo/Inactivo) |
+| Sistema | `database/system/002_Seed.sql` | Categorías, tipos de movimiento, permisos |
+| Sistema | `database/system/003_Data.sql` | Productos y movimientos de carga inicial |
+| Sistema | `database/system/004_Procedures.sql` | `fn_EscapeLikePattern` + `usp_*` de lectura |
+
+Orden fijo; sin ALTER en desarrollo.

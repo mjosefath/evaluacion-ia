@@ -1,3 +1,8 @@
+﻿-- =============================================================================
+-- Inventario (Sistema) — 003_Data: productos y movimientos de carga inicial.
+-- Requiere 001_Schema + 002_Seed.
+-- =============================================================================
+
 -- Seed productos + ENTRADA inicial (análisis 02, pasos 2–4).
 -- PDF de evaluación no disponible en el repo: valores elegidos para demo (documentados abajo).
 -- CreatedBy = primer UserProfiles.Id si existe; si no, NULL (DevelopmentAdminSeeder puede completarlo).
@@ -106,3 +111,4 @@ END;
 CLOSE product_cursor;
 DEALLOCATE product_cursor;
 GO
+
