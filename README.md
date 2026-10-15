@@ -43,6 +43,7 @@ Sobre **Inventario** (BD Sistema; recrear si cambió el esquema):
 9. `database/system/009_CreateInventoryMovements.sql`
 10. `database/system/010_CreateVwProductStock.sql`
 11. `database/system/011_SeedProductsAndMovements.sql`
+12. `database/system/012_SeedInventoryPermissions.sql`
 
 Los scripts son vírgenes (CREATE/INSERT). Si cambia un script de esquema, **recrea la BD** y vuelve a ejecutarlos en orden (sin ALTER en desarrollo).
 
