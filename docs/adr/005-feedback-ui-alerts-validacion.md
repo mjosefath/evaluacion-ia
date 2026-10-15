@@ -32,3 +32,13 @@ Tras adoptar Dub (ADR-003) e iconografía Lucide local (ADR-004), el feedback de
 - Formularios (incl. modal AJAX) exponen errores de campo con `asp-validation-for` + `.form-error` y summaries con `.validation-summary-errors`.
 - Nuevos tints de estado se añaden como tokens app-only en `theme.css`, no reinventando hex en vistas.
 - Cambiar el patrón (p. ej. toasts, otro set de iconos de estado) requiere ADR nuevo o adenda.
+
+## Adenda (2026-10-14) — warning, notify, confirm (análisis 03 / T03-10)
+
+| Tema | Decisión |
+|------|----------|
+| Cuatro tipos | `success`, `info`, `warning`, `error`. TempData vía `FlashMessages` (llaves tipadas). Solo `error` usa danger/ember. |
+| Warning | Token `--color-warning` / `--color-warning-soft` (tangerine); icono `triangle-alert`. |
+| JS | `InventarioUi.notify(type, message)` pinta el mismo `#app-alerts`. Mensajes M3 en `data-msg-*` del contenedor. |
+| Confirm | `InventarioUi.confirm({ title, message, acceptText, tone })` → `Promise<boolean>`. `tone=danger` enfoca Cancelar. Triggers: `data-confirm-open` + `data-confirm-action` / `data-confirm-href`. |
+| Cierre | success/info autodismiss 5 s o botón; warning/error solo botón. |

@@ -2,6 +2,7 @@ using Inventario.ApiClient.Auth;
 using Inventario.Contracts.Auth;
 using Inventario.Web.Auth;
 using Inventario.Web.Errors;
+using Inventario.Web.Feedback;
 using Inventario.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +26,7 @@ public sealed class AccountController(
 
         if (sessionExpired)
         {
-            TempData["Error"] = WebUiMessages.SessionExpired;
+            FlashMessages.SetError(TempData, WebUiMessages.SessionExpired);
         }
 
         ViewData["ReturnUrl"] = returnUrl;
@@ -120,7 +121,7 @@ public sealed class AccountController(
                 cancellationToken);
 
             await authSession.SignOutAsync(cancellationToken);
-            TempData["Success"] = "Contraseña actualizada. Inicia sesión de nuevo.";
+            FlashMessages.SetSuccess(TempData, "Contraseña actualizada. Inicia sesión de nuevo.");
 
             if (IsModalAjaxRequest())
             {
@@ -167,7 +168,7 @@ public sealed class AccountController(
 
             case ApiErrorDisposition.RedirectLoginSessionExpired:
                 await authSession.SignOutAsync(cancellationToken);
-                TempData["Error"] = translation.Message ?? WebUiMessages.SessionExpired;
+                FlashMessages.SetError(TempData, translation.Message ?? WebUiMessages.SessionExpired);
 
                 if (IsModalAjaxRequest())
                 {
@@ -250,7 +251,7 @@ public sealed class AccountController(
         }
 
         await authSession.SignOutAsync(cancellationToken);
-        TempData["Info"] = "Sesión cerrada.";
+        FlashMessages.SetInfo(TempData, "Sesión cerrada.");
         return RedirectToAction(nameof(Login));
     }
 

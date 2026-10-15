@@ -470,6 +470,10 @@ span.form-error:empty {
   margin-bottom: var(--spacing-16);
 }
 
+.alerts[hidden]:empty {
+  display: none;
+}
+
 .alert {
   display: flex;
   align-items: flex-start;
@@ -494,6 +498,33 @@ span.form-error:empty {
 .alert-content {
   flex: 1;
   min-width: 0;
+}
+
+.alert-dismiss {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: -0.25rem -0.35rem -0.25rem 0;
+  padding: 0.25rem;
+  border: none;
+  border-radius: var(--radius-controls);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.alert-dismiss:hover,
+.alert-dismiss:focus-visible {
+  opacity: 1;
+  outline: none;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.alert-dismiss .icon {
+  width: 1rem;
+  height: 1rem;
 }
 
 .alert-content > :first-child {
@@ -538,6 +569,16 @@ span.form-error:empty {
   background: var(--color-danger-soft);
   border-color: var(--color-danger);
   color: var(--color-danger);
+}
+
+.alert-warning {
+  background: var(--color-warning-soft);
+  border-color: var(--color-ash);
+  color: var(--color-warning);
+}
+
+.alert-warning .alert-content {
+  color: inherit;
 }
 
 /* —— Dialogs (confirm + action modal; Dub border-first) —— */

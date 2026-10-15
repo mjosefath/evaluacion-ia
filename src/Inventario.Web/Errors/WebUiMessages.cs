@@ -23,6 +23,13 @@ public static class WebUiMessages
     public const string NotFound =
         "No encontramos lo que buscas.";
 
+    /// <summary>Error genérico de modal/AJAX cuando no hay cuerpo usable (A9).</summary>
+    public const string ModalActionFailed =
+        "No se pudo completar la acción. Intenta de nuevo.";
+
+    public const string StillProcessing =
+        "Sigue procesando…";
+
     public static string WithReference(string message, string? traceId)
     {
         if (string.IsNullOrWhiteSpace(traceId))

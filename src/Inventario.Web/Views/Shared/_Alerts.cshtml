@@ -1,32 +1,65 @@
+@using Inventario.Web.Errors
+@using Inventario.Web.Feedback
 @{
-    var success = TempData["Success"] as string;
-    var info = TempData["Info"] as string;
-    var error = TempData["Error"] as string;
+    var success = TempData[FlashMessages.Success] as string;
+    var info = TempData[FlashMessages.Info] as string;
+    var warning = TempData[FlashMessages.Warning] as string;
+    var error = TempData[FlashMessages.Error] as string;
+    var hasAny = !string.IsNullOrWhiteSpace(success)
+        || !string.IsNullOrWhiteSpace(info)
+        || !string.IsNullOrWhiteSpace(warning)
+        || !string.IsNullOrWhiteSpace(error);
 }
 
-@if (!string.IsNullOrWhiteSpace(success) || !string.IsNullOrWhiteSpace(info) || !string.IsNullOrWhiteSpace(error))
-{
-    <div class="alerts" role="status" aria-live="polite">
-        @if (!string.IsNullOrWhiteSpace(success))
-        {
-            <div class="alert alert-success">
-                @await Html.PartialAsync("_AlertIcon", "success")
-                <div class="alert-content">@success</div>
-            </div>
-        }
-        @if (!string.IsNullOrWhiteSpace(info))
-        {
-            <div class="alert alert-info">
-                @await Html.PartialAsync("_AlertIcon", "info")
-                <div class="alert-content">@info</div>
-            </div>
-        }
-        @if (!string.IsNullOrWhiteSpace(error))
-        {
-            <div class="alert alert-error" role="alert">
-                @await Html.PartialAsync("_AlertIcon", "error")
-                <div class="alert-content">@error</div>
-            </div>
-        }
-    </div>
-}
+@* Contenedor siempre presente: InventarioUi.notify pinta aquí (W4). *@
+<div class="alerts"
+     id="app-alerts"
+     role="status"
+     aria-live="polite"
+     data-alerts
+     data-msg-modal-failed="@WebUiMessages.ModalActionFailed"
+     data-msg-connection="@WebUiMessages.ConnectionFailed"
+     data-msg-timeout="@WebUiMessages.Timeout"
+     data-msg-still-processing="@WebUiMessages.StillProcessing"
+     @if (!hasAny) { <text>hidden</text> }>
+    @if (!string.IsNullOrWhiteSpace(success))
+    {
+        <div class="alert alert-success" data-alert data-alert-type="success" data-alert-autodismiss="5000">
+            @await Html.PartialAsync("_AlertIcon", "success")
+            <div class="alert-content">@success</div>
+            <button type="button" class="alert-dismiss" data-alert-dismiss aria-label="Cerrar aviso">
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-x"/></svg>
+            </button>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(info))
+    {
+        <div class="alert alert-info" data-alert data-alert-type="info" data-alert-autodismiss="5000">
+            @await Html.PartialAsync("_AlertIcon", "info")
+            <div class="alert-content">@info</div>
+            <button type="button" class="alert-dismiss" data-alert-dismiss aria-label="Cerrar aviso">
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-x"/></svg>
+            </button>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(warning))
+    {
+        <div class="alert alert-warning" data-alert data-alert-type="warning">
+            @await Html.PartialAsync("_AlertIcon", "warning")
+            <div class="alert-content">@warning</div>
+            <button type="button" class="alert-dismiss" data-alert-dismiss aria-label="Cerrar aviso">
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-x"/></svg>
+            </button>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(error))
+    {
+        <div class="alert alert-error" data-alert data-alert-type="error" role="alert">
+            @await Html.PartialAsync("_AlertIcon", "error")
+            <div class="alert-content">@error</div>
+            <button type="button" class="alert-dismiss" data-alert-dismiss aria-label="Cerrar aviso">
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-x"/></svg>
+            </button>
+        </div>
+    }
+</div>

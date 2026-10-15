@@ -1,17 +1,235 @@
 (() => {
   const loadingBar = document.getElementById("app-loading-bar");
   const loadingOverlay = document.getElementById("app-loading-overlay");
+  const alertsRoot = document.getElementById("app-alerts");
 
   /** @type {HTMLElement | null} */
   let modalTrigger = null;
   /** @type {(() => void) | null} */
   let modalOnClose = null;
 
+  /** @type {((value: boolean) => void) | null} */
+  let confirmResolver = null;
+
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  let stillProcessingTimer = null;
+
+  const ALERT_ICONS = {
+    success: "lucide-circle-check",
+    info: "lucide-info",
+    warning: "lucide-triangle-alert",
+    error: "lucide-circle-alert"
+  };
+
   /**
    * Backdrop del action-modal: no cierra al clic (evita perder datos del formulario).
    * Cierre: Esc (nativo), data-modal-close / Cancelar, o InventarioUi.closeModal.
    * ChangePassword (T03-02): submit AJAX → partial HTML con errores o JSON { redirectUrl }.
+   * Avisos: InventarioUi.notify (W3–W4). Confirm: InventarioUi.confirm (W6).
    */
+
+  function uiMessage(key, fallback) {
+    const fromData = alertsRoot?.getAttribute(key);
+    return fromData && fromData.trim() ? fromData : fallback;
+  }
+
+  function ensureAlertsVisible() {
+    if (!alertsRoot) return;
+    alertsRoot.hidden = false;
+    alertsRoot.removeAttribute("hidden");
+  }
+
+  function syncAlertsVisibility() {
+    if (!alertsRoot) return;
+    const has = alertsRoot.querySelector("[data-alert]");
+    if (has) {
+      ensureAlertsVisible();
+    } else {
+      alertsRoot.hidden = true;
+    }
+  }
+
+  function dismissAlert(alertEl) {
+    if (!(alertEl instanceof HTMLElement)) return;
+    const t = alertEl._alertTimer;
+    if (t) clearTimeout(t);
+    alertEl.remove();
+    syncAlertsVisibility();
+  }
+
+  function scheduleAutoDismiss(alertEl) {
+    const ms = Number(alertEl.getAttribute("data-alert-autodismiss") || "0");
+    if (!ms || ms < 1) return;
+    alertEl._alertTimer = setTimeout(() => dismissAlert(alertEl), ms);
+  }
+
+  /**
+   * @param {"success"|"info"|"warning"|"error"} type
+   * @param {string} message
+   */
+  function notify(type, message) {
+    if (!alertsRoot || !message) return;
+
+    const kind = ["success", "info", "warning", "error"].includes(type)
+      ? type
+      : "info";
+    const iconId = ALERT_ICONS[kind] || ALERT_ICONS.info;
+
+    const el = document.createElement("div");
+    el.className = `alert alert-${kind}`;
+    el.dataset.alert = "";
+    el.dataset.alertType = kind;
+    if (kind === "error") {
+      el.setAttribute("role", "alert");
+    }
+    if (kind === "success" || kind === "info") {
+      el.setAttribute("data-alert-autodismiss", "5000");
+    }
+
+    el.innerHTML =
+      `<svg class="icon alert-icon" aria-hidden="true" focusable="false"><use href="#${iconId}"></use></svg>` +
+      `<div class="alert-content"></div>` +
+      `<button type="button" class="alert-dismiss" data-alert-dismiss aria-label="Cerrar aviso">` +
+      `<svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-x"></use></svg>` +
+      `</button>`;
+
+    const content = el.querySelector(".alert-content");
+    if (content) content.textContent = message;
+
+    alertsRoot.appendChild(el);
+    ensureAlertsVisible();
+    scheduleAutoDismiss(el);
+
+    if (kind === "error" || kind === "warning") {
+      el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }
+
+  function wireServerAlerts() {
+    alertsRoot?.querySelectorAll("[data-alert]").forEach((el) => {
+      if (el instanceof HTMLElement) scheduleAutoDismiss(el);
+    });
+  }
+
+  function resetConfirmUi() {
+    const dialog = document.getElementById("app-confirm-dialog");
+    if (!dialog) return;
+    const titleEl = dialog.querySelector("[data-confirm-title]");
+    const messageEl = dialog.querySelector("[data-confirm-message]");
+    const cancelBtn = dialog.querySelector("[data-confirm-cancel]");
+    const acceptBtn = dialog.querySelector("[data-confirm-accept]");
+    if (titleEl) titleEl.textContent = "Confirmar";
+    if (messageEl) messageEl.textContent = "¿Deseas continuar?";
+    if (cancelBtn instanceof HTMLButtonElement) {
+      cancelBtn.textContent = "Cancelar";
+    }
+    if (acceptBtn instanceof HTMLButtonElement) {
+      acceptBtn.textContent = "Confirmar";
+      acceptBtn.className = "btn btn-danger";
+    }
+  }
+
+  /**
+   * @param {{
+   *   title?: string,
+   *   message?: string,
+   *   acceptText?: string,
+   *   cancelText?: string,
+   *   tone?: "danger"|"neutral"
+   * }} [options]
+   * @returns {Promise<boolean>}
+   */
+  function confirm(options = {}) {
+    const dialog = document.getElementById("app-confirm-dialog");
+    if (!dialog || typeof dialog.showModal !== "function") {
+      return Promise.resolve(false);
+    }
+
+    if (confirmResolver) {
+      confirmResolver(false);
+      confirmResolver = null;
+    }
+
+    const titleEl = dialog.querySelector("[data-confirm-title]");
+    const messageEl = dialog.querySelector("[data-confirm-message]");
+    const cancelBtn = dialog.querySelector("[data-confirm-cancel]");
+    const acceptBtn = dialog.querySelector("[data-confirm-accept]");
+    const tone = options.tone === "neutral" ? "neutral" : "danger";
+
+    if (titleEl && typeof options.title === "string") {
+      titleEl.textContent = options.title;
+    }
+    if (messageEl && typeof options.message === "string") {
+      messageEl.textContent = options.message;
+    }
+    if (cancelBtn instanceof HTMLButtonElement) {
+      cancelBtn.textContent =
+        typeof options.cancelText === "string" ? options.cancelText : "Cancelar";
+    }
+    if (acceptBtn instanceof HTMLButtonElement) {
+      acceptBtn.textContent =
+        typeof options.acceptText === "string" ? options.acceptText : "Confirmar";
+      acceptBtn.className = tone === "neutral" ? "btn btn-primary" : "btn btn-danger";
+    }
+
+    return new Promise((resolve) => {
+      confirmResolver = resolve;
+      if (!dialog.open) {
+        dialog.showModal();
+      }
+      // W6: danger → foco en Cancelar (Enter no confirma).
+      const focusTarget =
+        tone === "danger" && cancelBtn instanceof HTMLElement
+          ? cancelBtn
+          : acceptBtn instanceof HTMLElement
+            ? acceptBtn
+            : null;
+      focusTarget?.focus();
+    });
+  }
+
+  function settleConfirm(accepted) {
+    const dialog = document.getElementById("app-confirm-dialog");
+    const resolve = confirmResolver;
+    confirmResolver = null;
+    dialog?.close();
+    resetConfirmUi();
+    resolve?.(!!accepted);
+  }
+
+  async function runConfirmFromTrigger(trigger) {
+    const accepted = await confirm({
+      title: trigger.getAttribute("data-confirm-title") || undefined,
+      message: trigger.getAttribute("data-confirm-message") || undefined,
+      acceptText: trigger.getAttribute("data-confirm-accept") || undefined,
+      cancelText: trigger.getAttribute("data-confirm-cancel") || undefined,
+      tone: trigger.getAttribute("data-confirm-tone") === "neutral" ? "neutral" : "danger"
+    });
+    if (!accepted) return;
+
+    const action = trigger.getAttribute("data-confirm-action");
+    if (action) {
+      const target = document.querySelector(action);
+      if (target instanceof HTMLFormElement) {
+        target.requestSubmit();
+        return;
+      }
+      if (target instanceof HTMLElement) {
+        target.click();
+        return;
+      }
+    }
+
+    const href = trigger.getAttribute("data-confirm-href");
+    if (href) {
+      window.location.assign(href);
+      return;
+    }
+
+    trigger.dispatchEvent(
+      new CustomEvent("inventario:confirmed", { bubbles: true, cancelable: true })
+    );
+  }
 
   function resolveActionModal(idOrElement) {
     if (idOrElement == null || idOrElement === "") {
@@ -133,10 +351,21 @@
 
       if (contentType.includes("application/json")) {
         const data = await response.json();
+        if (data?.notify && typeof data.notify.message === "string") {
+          notify(data.notify.type || "info", data.notify.message);
+        }
         if (data && typeof data.redirectUrl === "string" && data.redirectUrl) {
           window.location.assign(data.redirectUrl);
           return;
         }
+        if (data?.refresh === true) {
+          window.location.reload();
+          return;
+        }
+        if (dialog?.open) {
+          closeModal(dialog);
+        }
+        return;
       }
 
       if (contentType.includes("text/html")) {
@@ -156,29 +385,16 @@
       }
 
       if (!response.ok) {
-        const body = dialog?.querySelector("[data-modal-body]");
-        if (body && !body.querySelector(".form-error[data-modal-generic-error]")) {
-          const p = document.createElement("p");
-          p.className = "form-error";
-          p.dataset.modalGenericError = "true";
-          p.setAttribute("role", "alert");
-          p.textContent = "No se pudo completar la acción. Intenta de nuevo.";
-          body.prepend(p);
-        }
+        notify(
+          "error",
+          uiMessage("data-msg-modal-failed", "No se pudo completar la acción. Intenta de nuevo.")
+        );
       }
     } catch {
-      const body = dialog?.querySelector("[data-modal-body]");
-      if (body) {
-        let alert = body.querySelector("[data-modal-generic-error]");
-        if (!alert) {
-          alert = document.createElement("p");
-          alert.className = "form-error";
-          alert.dataset.modalGenericError = "true";
-          alert.setAttribute("role", "alert");
-          body.prepend(alert);
-        }
-        alert.textContent = "No se pudo completar la acción. Intenta de nuevo.";
-      }
+      notify(
+        "error",
+        uiMessage("data-msg-connection", "No hay conexión con el servidor. Comprueba la red e inténtalo de nuevo.")
+      );
     } finally {
       window.InventarioUi.hideLoading();
     }
@@ -373,21 +589,32 @@
       if (withOverlay) {
         loadingOverlay?.classList.add("is-active");
       }
+      if (stillProcessingTimer) clearTimeout(stillProcessingTimer);
+      stillProcessingTimer = setTimeout(() => {
+        notify(
+          "info",
+          uiMessage("data-msg-still-processing", "Sigue procesando…")
+        );
+      }, 10000);
     },
     hideLoading() {
       loadingBar?.classList.remove("is-active");
       loadingOverlay?.classList.remove("is-active");
-    },
-    openConfirm() {
-      const dialog = document.getElementById("app-confirm-dialog");
-      if (dialog && typeof dialog.showModal === "function") {
-        dialog.showModal();
+      if (stillProcessingTimer) {
+        clearTimeout(stillProcessingTimer);
+        stillProcessingTimer = null;
       }
     },
-    closeConfirm() {
-      const dialog = document.getElementById("app-confirm-dialog");
-      dialog?.close();
+    /** @deprecated Preferir InventarioUi.confirm(options). */
+    openConfirm(options) {
+      void confirm(options || {});
     },
+    closeConfirm() {
+      settleConfirm(false);
+    },
+    confirm,
+    notify,
+    showAlert: notify,
     openModal,
     closeModal,
     openNav,
@@ -449,16 +676,38 @@
   }
   syncNavToggleUi();
 
-  document.querySelectorAll("[data-confirm-open]").forEach((el) => {
-    el.addEventListener("click", (e) => {
-      e.preventDefault();
-      window.InventarioUi.openConfirm();
-    });
-  });
-
   document.addEventListener("click", (e) => {
     const target = e.target;
     if (!(target instanceof Element)) return;
+
+    const dismissEl = target.closest("[data-alert-dismiss]");
+    if (dismissEl) {
+      e.preventDefault();
+      const alertEl = dismissEl.closest("[data-alert]");
+      if (alertEl instanceof HTMLElement) dismissAlert(alertEl);
+      return;
+    }
+
+    const confirmOpen = target.closest("[data-confirm-open]");
+    if (confirmOpen) {
+      e.preventDefault();
+      void runConfirmFromTrigger(confirmOpen);
+      return;
+    }
+
+    const confirmCancel = target.closest("[data-confirm-cancel]");
+    if (confirmCancel) {
+      e.preventDefault();
+      settleConfirm(false);
+      return;
+    }
+
+    const confirmAccept = target.closest("[data-confirm-accept]");
+    if (confirmAccept) {
+      e.preventDefault();
+      settleConfirm(true);
+      return;
+    }
 
     const openEl = target.closest("[data-modal-open]");
     if (openEl) {
@@ -481,6 +730,20 @@
       }
     }
   });
+
+  document.addEventListener("close", (e) => {
+    const dialog = e.target;
+    if (!(dialog instanceof HTMLDialogElement)) return;
+    if (dialog.id !== "app-confirm-dialog") return;
+    if (confirmResolver) {
+      const resolve = confirmResolver;
+      confirmResolver = null;
+      resetConfirmUi();
+      resolve(false);
+    }
+  });
+
+  wireServerAlerts();
 
   document.addEventListener("submit", (e) => {
     const form = e.target;

@@ -1,6 +1,7 @@
 using Inventario.ApiClient.Auth;
 using Inventario.Web.Auth;
 using Inventario.Web.Errors;
+using Inventario.Web.Feedback;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -61,9 +62,9 @@ public sealed class InventarioApiExceptionFilter(
             case ApiErrorDisposition.FormMessage:
             case ApiErrorDisposition.ApplyModelState:
                 var tempData = tempDataFactory.GetTempData(context.HttpContext);
-                tempData["Error"] = translation.Message
-                    ?? apiEx.Error.Detail
-                    ?? WebUiMessages.Unexpected;
+                FlashMessages.SetError(
+                    tempData,
+                    translation.Message ?? apiEx.Error.Detail ?? WebUiMessages.Unexpected);
                 context.Result = new RedirectToActionResult("Index", "Home", null);
                 break;
 
