@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Inventario.Data.System;
 
 /// <summary>
-/// DbContext Sistema alineado a database/system/001–005 (estándar E1–E9). Sin migraciones al arrancar.
+/// DbContext Sistema alineado a database/system/001–007 (estándar E1–E9). Sin migraciones al arrancar.
 /// </summary>
 public sealed class InventarioSystemDbContext : DbContext
 {
@@ -21,6 +21,10 @@ public sealed class InventarioSystemDbContext : DbContext
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
     public DbSet<AccessLog> AccessLogs => Set<AccessLog>();
+
+    public DbSet<Category> Categories => Set<Category>();
+
+    public DbSet<MovementType> MovementTypes => Set<MovementType>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -170,6 +174,71 @@ public sealed class InventarioSystemDbContext : DbContext
                 .HasForeignKey(e => e.CreatedBy)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_AccessLogs_UserProfiles_CreatedBy");
+        });
+
+        modelBuilder.Entity<Category>(entity =>
+        {
+            entity.ToTable("Categories");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).UseIdentityColumn();
+            entity.Property(e => e.Name).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.StatusId).IsRequired().HasDefaultValue(RecordStatusIds.Active);
+            entity.Property(e => e.CreatedAtUtc).HasColumnType("datetime2(3)");
+            entity.Property(e => e.UpdatedAtUtc).HasColumnType("datetime2(3)");
+            entity.Property(e => e.RowVersion).IsRowVersion();
+
+            entity.HasIndex(e => e.Name).IsUnique().HasDatabaseName("UX_Categories_Name");
+
+            entity.HasOne<RecordStatus>()
+                .WithMany()
+                .HasForeignKey(e => e.StatusId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Categories_RecordStatuses_StatusId");
+
+            entity.HasOne<UserProfile>()
+                .WithMany()
+                .HasForeignKey(e => e.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Categories_UserProfiles_CreatedBy");
+
+            entity.HasOne<UserProfile>()
+                .WithMany()
+                .HasForeignKey(e => e.UpdatedBy)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Categories_UserProfiles_UpdatedBy");
+        });
+
+        modelBuilder.Entity<MovementType>(entity =>
+        {
+            entity.ToTable("MovementTypes");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).UseIdentityColumn();
+            entity.Property(e => e.Code).HasMaxLength(10).IsRequired().IsUnicode(false);
+            entity.Property(e => e.Name).HasMaxLength(30).IsRequired();
+            entity.Property(e => e.StatusId).IsRequired().HasDefaultValue(RecordStatusIds.Active);
+            entity.Property(e => e.CreatedAtUtc).HasColumnType("datetime2(3)");
+            entity.Property(e => e.UpdatedAtUtc).HasColumnType("datetime2(3)");
+            entity.Property(e => e.RowVersion).IsRowVersion();
+
+            entity.HasIndex(e => e.Code).IsUnique().HasDatabaseName("UX_MovementTypes_Code");
+
+            entity.HasOne<RecordStatus>()
+                .WithMany()
+                .HasForeignKey(e => e.StatusId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_MovementTypes_RecordStatuses_StatusId");
+
+            entity.HasOne<UserProfile>()
+                .WithMany()
+                .HasForeignKey(e => e.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_MovementTypes_UserProfiles_CreatedBy");
+
+            entity.HasOne<UserProfile>()
+                .WithMany()
+                .HasForeignKey(e => e.UpdatedBy)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_MovementTypes_UserProfiles_UpdatedBy");
         });
     }
 }

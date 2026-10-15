@@ -39,3 +39,11 @@ El análisis 02 define un molde único de columnas y reglas (E1–E11) para toda
 - Application usa `StatusId == RecordStatusIds.Active` (no `IsActive`).
 - AccessLogs resuelve `CreatedBy` desde `IdentityUserId` → `UserProfiles.Id`.
 - Ampliar el molde (p. ej. StatusId en RecordStatuses) requiere adenda.
+
+## Adenda (2026-10-14) — Categories y MovementTypes (T02-06)
+
+| Tabla | Notas |
+|-------|--------|
+| Categories | Mutable; `Name` nvarchar(50) único; seed Electrónica / Papelería / Limpieza; `CreatedBy` NULL. |
+| MovementTypes | Mutable; `Code` varchar(10) único (`ENTRADA` / `SALIDA` / `AJUSTE`); `Name` nvarchar(30); seed de esos 3; `CreatedBy` NULL. |
+| RecordStatuses | Sin cambios (no se redefine). |

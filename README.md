@@ -37,6 +37,8 @@ Sobre **Inventario** (BD Sistema; recrear si cambió el esquema):
 3. `database/system/003_CreatePermissions.sql`
 4. `database/system/004_CreateAccessLogs.sql`
 5. `database/system/005_SeedPermissionStub.sql`
+6. `database/system/006_CreateCategories.sql`
+7. `database/system/007_CreateMovementTypes.sql`
 
 Los scripts son vírgenes (CREATE/INSERT). Si cambia un script de esquema, **recrea la BD** y vuelve a ejecutarlos en orden (sin ALTER en desarrollo).
 
