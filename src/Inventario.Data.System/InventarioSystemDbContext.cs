@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Inventario.Data.System;
 
 /// <summary>
-/// DbContext Sistema alineado a database/system/001–007 (estándar E1–E9). Sin migraciones al arrancar.
+/// DbContext Sistema alineado a database/system/001–011 (estándar E1–E9). Sin migraciones al arrancar.
 /// </summary>
 public sealed class InventarioSystemDbContext : DbContext
 {
@@ -25,6 +25,12 @@ public sealed class InventarioSystemDbContext : DbContext
     public DbSet<Category> Categories => Set<Category>();
 
     public DbSet<MovementType> MovementTypes => Set<MovementType>();
+
+    public DbSet<Product> Products => Set<Product>();
+
+    public DbSet<InventoryMovement> InventoryMovements => Set<InventoryMovement>();
+
+    public DbSet<ProductStock> ProductStocks => Set<ProductStock>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -239,6 +245,91 @@ public sealed class InventarioSystemDbContext : DbContext
                 .HasForeignKey(e => e.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_MovementTypes_UserProfiles_UpdatedBy");
+        });
+
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.ToTable("Products");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).UseIdentityColumn();
+            entity.Property(e => e.Code).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Name).HasMaxLength(150).IsRequired();
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.StatusId).IsRequired().HasDefaultValue(RecordStatusIds.Active);
+            entity.Property(e => e.CreatedAtUtc).HasColumnType("datetime2(3)");
+            entity.Property(e => e.UpdatedAtUtc).HasColumnType("datetime2(3)");
+            entity.Property(e => e.RowVersion).IsRowVersion();
+
+            entity.HasIndex(e => e.Code).IsUnique().HasDatabaseName("UX_Products_Code");
+            entity.HasIndex(e => e.CategoryId).HasDatabaseName("IX_Products_CategoryId");
+            entity.HasIndex(e => e.StatusId).HasDatabaseName("IX_Products_StatusId");
+
+            entity.HasOne<Category>()
+                .WithMany()
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Products_Categories_CategoryId");
+
+            entity.HasOne<RecordStatus>()
+                .WithMany()
+                .HasForeignKey(e => e.StatusId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Products_RecordStatuses_StatusId");
+
+            entity.HasOne<UserProfile>()
+                .WithMany()
+                .HasForeignKey(e => e.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Products_UserProfiles_CreatedBy");
+
+            entity.HasOne<UserProfile>()
+                .WithMany()
+                .HasForeignKey(e => e.UpdatedBy)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Products_UserProfiles_UpdatedBy");
+        });
+
+        modelBuilder.Entity<InventoryMovement>(entity =>
+        {
+            entity.ToTable("InventoryMovements");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).UseIdentityColumn();
+            entity.Property(e => e.Reason).HasMaxLength(250);
+            entity.Property(e => e.CreatedAtUtc).HasColumnType("datetime2(3)");
+
+            entity.HasIndex(e => new { e.ProductId, e.Id })
+                .IsDescending(false, true)
+                .HasDatabaseName("IX_InventoryMovements_ProductId_Id");
+
+            entity.HasIndex(e => e.CreatedAtUtc)
+                .IsDescending()
+                .HasDatabaseName("IX_InventoryMovements_CreatedAtUtc");
+
+            entity.HasOne<Product>()
+                .WithMany()
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_InventoryMovements_Products_ProductId");
+
+            entity.HasOne<MovementType>()
+                .WithMany()
+                .HasForeignKey(e => e.MovementTypeId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_InventoryMovements_MovementTypes_MovementTypeId");
+
+            entity.HasOne<UserProfile>()
+                .WithMany()
+                .HasForeignKey(e => e.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_InventoryMovements_UserProfiles_CreatedBy");
+        });
+
+        modelBuilder.Entity<ProductStock>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("vw_ProductStock");
+            entity.Property(e => e.ProductId);
+            entity.Property(e => e.Stock);
         });
     }
 }

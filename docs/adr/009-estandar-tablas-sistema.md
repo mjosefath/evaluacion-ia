@@ -47,3 +47,12 @@ El análisis 02 define un molde único de columnas y reglas (E1–E11) para toda
 | Categories | Mutable; `Name` nvarchar(50) único; seed Electrónica / Papelería / Limpieza; `CreatedBy` NULL. |
 | MovementTypes | Mutable; `Code` varchar(10) único (`ENTRADA` / `SALIDA` / `AJUSTE`); `Name` nvarchar(30); seed de esos 3; `CreatedBy` NULL. |
 | RecordStatuses | Sin cambios (no se redefine). |
+
+## Adenda (2026-10-14) — Products, InventoryMovements, vw_ProductStock (T02-07)
+
+| Pieza | Notas |
+|-------|--------|
+| Products | Mutable; sin columna de existencia; `Code` UX; CK precio/mínimo ≥ 0. |
+| InventoryMovements | Inmutable `bigint`; CKs de stock; índices ProductId+Id DESC INCLUDE StockAfter y CreatedAtUtc DESC. |
+| vw_ProductStock | `ProductId` + `Stock` = último `StockAfter` (0 si no hay movimientos). |
+| Seed | 5 productos + ENTRADA inicial; `CreatedBy` del perfil si existe, o se completa en DevelopmentAdminSeeder. |
