@@ -42,3 +42,5 @@ Tras adoptar Dub (ADR-003) e iconografía Lucide local (ADR-004), el feedback de
 | JS | `InventarioUi.notify(type, message)` pinta el mismo `#app-alerts`. Mensajes M3 en `data-msg-*` del contenedor. |
 | Confirm | `InventarioUi.confirm({ title, message, acceptText, tone })` → `Promise<boolean>`. `tone=danger` enfoca Cancelar. Triggers: `data-confirm-open` + `data-confirm-action` / `data-confirm-href`. |
 | Cierre | success/info autodismiss 5 s o botón; warning/error solo botón. |
+
+El contrato de errores (`ApiProblem` / `ApiError` / traductor W1) y la separación 401/403 están en [ADR-008](008-result-apiproblem.md).

@@ -30,3 +30,12 @@ Inventario.Web necesita formularios de acción (p. ej. cambiar contraseña) sin 
 - Nuevos iconos se añaden al subset local y al sprite; no se introducen CDNs.
 - Nuevos ítems del sidebar usan `NavActive.IsMatch(ViewContext, controller, action)` (o solo `controller` si aplica) y mantienen texto visible + icono decorativo.
 - Cambiar el criterio de activo (p. ej. por área/módulo) o el patrón de modal requiere ADR nuevo o adenda.
+
+## Adenda (2026-10-14) — AJAX, ApiError y 401≠403 (análisis 03)
+
+| Tema | Decisión |
+|------|----------|
+| Respuesta AJAX de éxito (W5) | Además de `{ redirectUrl }`: opcional `notify: { type, message }` y `refresh: true` (consume `InventarioUi.notify`; ver ADR-005). |
+| Confirm | Configurable vía `InventarioUi.confirm` / `data-confirm-*` (detalle en ADR-005); ya no es solo “cerrar el diálogo”. |
+| ApiClient | Fallos tipados como `ApiError` en `InventarioApiException`. `IsUnauthorized` = solo 401; `IsForbidden` = solo 403. El refresh silencioso no trata 403 como sesión vencida. |
+| Estándar de errores | Contrato completo en [ADR-008](008-result-apiproblem.md). |

@@ -24,3 +24,7 @@ Usar `AuthResult<T>` con `AuthErrorCode` (InvalidCredentials, Lockout, InactiveP
 
 - Controladores delgados: invocan `IAuthService` y mapean `AuthErrorCode`.
 - Nuevos fallos de auth añaden valor al enum y al mapeo en Api.
+
+## Adenda (2026-10-14) — Convergencia a Result general (análisis 03 / ADR-008)
+
+`AuthResult` / `AuthErrorCode` / `AuthResultHttpMapper` fueron eliminados. Auth usa el mismo `Result` / `Result<T>` y `ErrorCodes` que el resto de Application (p. ej. `auth.invalid_credentials`, `auth.locked`, `auth.inactive_profile`, `auth.session_expired`). El mapeo HTTP y el contrato de error están en ADR-008 (`ResultHttpMapper`, `ApiProblem`). La decisión de no usar excepciones de negocio se mantiene.
