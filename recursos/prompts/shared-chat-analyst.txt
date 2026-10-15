@@ -1,0 +1,992 @@
+https://cursor.com/dashboard/shared-chats?shareId=analyst-HtZebKvxF477
+
+
+# analyst
+
+## User
+
+Dentro de la carpeta del repo esta el proyecto, encontraras una carpeta de recursos de ui, prompts y contexto.
+
+Lee el contexto, y te asignare el rol de analista, te regiras por las instrucciones del prompt-analyst.md solamente. Una vez estes listo para empezar te dare la primer indicacion.
+
+## Assistant
+
+Voy a localizar y leer el contexto y `prompt-analyst.md` para adoptar ese rol.
+
+### Tool Glob File Search
+
+```
+{"globPattern":"**/prompt-analyst.md"}
+```
+
+### Tool Glob File Search
+
+```
+{"globPattern":"**/*contexto*"}
+```
+
+### Tool Glob File Search
+
+```
+{"globPattern":"**/prompts/**/*"}
+```
+
+### Tool Glob File Search
+
+```
+{"globPattern":"**/recursos*/**/*"}
+```
+
+### Tool Glob File Search
+
+```
+{"globPattern":"**/recursos/**/*"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\recursos\\prompts\\prompt-analyst.md"}
+```
+
+### Tool Ripgrep Raw Search
+
+```
+{"pattern":"contexto|context","path":"C:\\Git\\evaluacion-ia\\recursos","glob":"*.*","outputMode":"files_with_matches","caseInsensitive":false,"multiline":false,"toolCallId":"call-ebd480bc-88b8-4903-a35b-885b1f4f45e7-6\nfc_p5ErNzu-3LYxF7-0f43137f-aws_ue1_2","offset":0}
+```
+
+## Assistant
+
+Rol ANALISTA listo: documento por punto en `docs/analisis/`, sin código, solo el alcance que indiques. Esperando el primer punto.
+
+## User
+
+ok, en base al documento de contexto listame los puntos que ocupas definicion para que te indique lo que debemos hacer
+
+## Assistant
+
+Busco el documento de contexto del proyecto para listar los puntos pendientes de definición.
+
+### Tool Glob File Search
+
+```
+{"globPattern":"**/*.{md,txt}"}
+```
+
+### Tool Ripgrep Raw Search
+
+```
+{"pattern":"contexto|inventario|módulo|modulo","path":"C:\\Git\\evaluacion-ia","glob":"*.md","outputMode":"files_with_matches","caseInsensitive":false,"multiline":false,"toolCallId":"call-b2d92f69-a636-453b-92d4-97556547c47d-8\nfc_p5EsvxX-3LYxF7-6c97053b-aws_ue1_1","offset":0}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\recursos\\prompts\\prompt-planner.md"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\recursos\\prompts\\prompt-executioner.md"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\recursos\\ui\\DESIGN.md","limit":80}
+```
+
+### Tool Run Terminal Command V2
+
+### Tool Run Terminal Command V2
+
+### Tool Glob File Search
+
+```
+{"targetDirectory":"C:\\Users\\Daniel\\.cursor\\projects\\c-Git-evaluacion-ia\\agent-transcripts","globPattern":"**/*"}
+```
+
+### Tool Ripgrep Raw Search
+
+```
+{"pattern":"contexto|inventario|análisis","path":"C:\\Users\\Daniel\\AppData\\Local\\Cursor\\AgentStores\\cursor_agent_stores\\t7910857-u185453180\\files","outputMode":"files_with_matches","caseInsensitive":false,"headLimit":20,"multiline":false,"toolCallId":"call-f7e3d54a-d7be-486d-a287-6eac1cfc684e-15\nfc_p5Et3TT-3LYxF7-970db82c-aws_ue1_2","offset":0}
+```
+
+## Assistant
+
+En el repo solo hay el contexto corto de los prompts: **sistema de inventario desde cero**; no hay documento de negocio con módulos ni `docs/analisis/` aún.
+
+Puntos que necesitás definir (candidatos; vos elegís alcance y orden):
+
+1. **Negocio y alcance** — qué vende/almacena, un solo almacén o varios, qué queda fuera (compras, ventas, producción…).
+2. **Stack y entorno** — tecnología, BD, autenticación (el análisis puede arrancar sin esto).
+3. **Usuarios y permisos** — roles y qué puede hacer cada uno.
+4. **Catálogo de productos** — SKU, unidades, variantes, categorías, activar/desactivar.
+5. **Almacenes / ubicaciones** — estructura física del stock.
+6. **Existencias** — cómo se consulta y qué se muestra (disponible, reservado, etc.).
+7. **Entradas** — compras, devoluciones, ajustes de alta.
+8. **Salidas** — ventas, consumos, ajustes de baja.
+9. **Transferencias** — entre almacenes/ubicaciones.
+10. **Ajustes e inventario físico** — conteos, diferencias, cierre.
+11. **Costos / valuación** — si aplica y con qué método.
+12. **Proveedores y/o clientes** — si el inventario los usa.
+13. **Documentos y numeración** — folios, estados, impresión/PDF.
+14. **Auditoría y borrado** — qué se registra y qué nunca se borra físico.
+15. **UI de captura** — flujo diario prioritario (pantalla “rápida”).
+
+Indicame el primero (número o nombre) y lo analizo.
+
+## User
+
+ocupamos definir la estructura inicial del proyecto.
+
+Antes de meternos a inventario necesito la base sobre la que vamos a construir todo. La idea es terminar con algo que arranque, donde pueda iniciar sesión con un usuario de prueba y ver la página de inicio vacía, ya con el diseño final.
+
+Esto ya lo tengo decidido, no me lo preguntes:
+
+Van a ser dos proyectos separados: una API y una Web. Los dos en .NET 10. La API es la única que toca la base de datos; la Web es MVC con Razor y todo lo que necesita se lo pide a la API por HTTP, nunca entra directo a la BD. Para que la Web no arme peticiones a mano, quiero un cliente HTTP tipado compartido y un proyecto de contratos (DTOs) que usen los dos. La Web jamás debe ver una entidad de EF.
+
+Base de datos en SQL Server, pero son dos: una solo para Identity (usuarios, contraseñas, roles) y otra para todo lo del sistema de inventario. Cada una con su cadena de conexión y su propio contexto de EF Core. Entre las dos no hay llaves foráneas; en la BD del sistema guardamos el id del usuario de Identity como dato y ahí va su perfil.
+
+La BD del sistema es database-first: los scripts SQL numerados en `database/` son la verdad, solo CREATE e INSERT, y el contexto se saca con scaffolding. Si un script cambia, recreo la base, nada de ALTER. La de Identity también se crea por script con el esquema estándar, sin migraciones al arrancar.
+
+Para la sesión, la Web maneja una cookie y la API trabaja con JWT: la Web hace login contra la API, guarda el token en su cookie y lo manda en cada petición. Quiero que se renueve sin que el usuario lo note, bloqueo después de varios intentos fallidos, cerrar sesión y antiforgery en todos los formularios.
+
+Las contraseñas las guarda Identity con su hash; ninguna en texto plano en ningún lado. Las cadenas de conexión, la llave del JWT y cualquier contraseña van en user-secrets en mi máquina y en variables de entorno cuando se publique.
+Nada de eso en el repo ni en los appsettings.
+
+El diseño sale del recurso de UI que te paso en la carpeta de recursos>ui, son 2 md. No lo quiero reinventar,
+solo adaptarlo a Razor: layout, parciales y lo que haga falta. Librerías de JS y CSS locales en `wwwroot/lib`, sin
+CDN, y solo MIT, Apache o BSD.
+
+Logs con Serilog. En desarrollo, al arrancar la API, que cree un usuario administrador si no existe, con la
+contraseña tomada de user-secrets.
+
+Lo que necesito que me aterrices en el análisis:
+- Cómo queda la solución: qué proyectos hay (API, Web, contratos, cliente HTTP, datos, lógica…), qué referencia a qué
+  y por qué.
+- Qué vive en cada base de datos, cómo se liga el usuario de Identity con su perfil en la BD del sistema y en qué orden van los primeros scripts.
+- El flujo completo de la sesión entre Web y API: login, renovación del token, sesión vencida, cuenta bloqueada, logout y cambio de contraseña.
+- Cómo vamos a manejar roles y permisos: solo la estructura y cómo se revisan en la API y en la Web, todavía sin los permisos de cada módulo.
+- Qué configuración va en appsettings, qué en user-secrets y qué en variables de entorno, con el nombre de cada clave en los dos proyectos.
+- Auditoría base: quién y cuándo creó o modificó cada registro, y si conviene una bitácora de accesos.
+- El layout: menú, encabezado, contenido, avisos, confirmaciones y estados de carga, tomando el recurso de UI.
+- Cómo se manejan los errores: qué responde la API, cómo los muestra la Web y qué se guarda en el log.
+- Un README inicial: crear las dos bases, configurar secretos y arrancar API y Web.
+
+Por ahora queda fuera todo lo de inventario (productos, almacenes, movimientos, existencias), reportes y cualquier
+cosa de producción como publicación o respaldos. Y nada de pruebas.
+
+## Assistant
+
+Voy a leer el recurso de UI completo y revisar si ya existe `docs/analisis`, para redactar el documento de estructura inicial.
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\recursos\\ui\\DESIGN.md"}
+```
+
+### Tool Glob File Search
+
+```
+{"globPattern":"**/docs/**/*"}
+```
+
+### Tool Glob File Search
+
+```
+{"globPattern":"**/recursos/ui/**/*"}
+```
+
+### Tool Get Mcp Tools
+
+```
+{"server":"cursor","toolName":"TodoWrite","toolCallId":"call-23f517dc-7369-4401-8ed5-05c3b2e2abe2-19\nfc_p5ExH2c-3LYxF7-a55f8242-aws_ue1_3"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\recursos\\ui\\theme.css","limit":100}
+```
+
+## Assistant
+
+Redacto el documento de análisis con las decisiones técnicas ya cerradas según lo que definiste.
+
+### Tool Run Terminal Command V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+## Assistant
+
+Quedó en `docs/analisis/01-estructura-inicial.md` (índice en `docs/analisis/README.md`).
+
+**Qué quedó:** solución de 7 proyectos y referencias; scripts Identity/Sistema; flujo login → refresh silencioso → lockout → logout → cambio de contraseña; estructura roles/permisos; claves appsettings vs secrets; auditoría de fila + bitácora de accesos; layout desde `recursos/ui`; errores ProblemDetails; contenido del README de arranque.
+
+**Decidí yo:** proyecto `Application`; refresh token hasheado en Identity; access 15 min / refresh 7 días; lockout 5×15 min; login por **usuario** (no correo); permisos por `RoleName` en BD Sistema; bitácora solo de auth; seeder admin solo en Development; nombre UI `Inventario`.
+
+**Te pregunto:** nada bloqueante. Si querés login por correo u otro nombre en el encabezado, lo registro como decisión tuya y actualizo el doc.
+
+Cuando lo apruebes o corrijas, seguimos.
+
+## User
+
+apruebalo, ya no es borrador
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+## Assistant
+
+Corrigiendo la fecha de aprobación a hoy.
+
+### Tool Edit File V2
+
+## Assistant
+
+**01** quedó **Aprobado** en el índice y registrado en Decisiones del dueño. Listo para el planificador cuando quieras.
+
+## User
+
+adelante, basandote en el documento, antes de definir entidades, debemos entender el porposito del sitema, los flujos paara cumplir lo que sollicitan, y cumpliendo los requerimientos. ya se desarrollo la esturtura del sistma, falta la logica
+
+## Assistant
+
+Reviso el estado del repo y el análisis aprobado; con eso aterrizo el propósito y los flujos de negocio (sin entidades aún).
+
+### Tool Glob File Search
+
+```
+{"globPattern":"**/docs/**/*"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\docs\\analisis\\01-estructura-inicial.md","limit":50}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\docs\\analisis\\README.md"}
+```
+
+### Tool Ripgrep Raw Search
+
+```
+{"pattern":"propósito|proposito|inventario|flujo|requerimiento","path":"C:\\Git\\evaluacion-ia","glob":"*.md","outputMode":"files_with_matches","caseInsensitive":false,"multiline":false,"toolCallId":"call-36677177-ab7f-47ec-aad4-624bbaf4bfe4-30\nfc_p5FXmEP-3LYxF7-d3f1726e-aws_ue1_3","offset":0}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\README.md","limit":80}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\docs\\adr\\001-estructura-solucion.md","limit":60}
+```
+
+### Tool Glob File Search
+
+```
+{"targetDirectory":"C:\\Users\\Daniel\\.cursor\\projects\\c-Git-evaluacion-ia\\agent-transcripts","globPattern":"**/*"}
+```
+
+## Assistant
+
+El 01 ya cerró la plataforma; no hay aún reglas de negocio del inventario. Redacto el 02 de propósito y flujos, y dejo solo las preguntas de negocio imprescindibles.
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+## Assistant
+
+Quedó `docs/analisis/02-proposito-y-flujos.md`: propósito (hipótesis), actores, flujos F1–F7 y requisitos RQ1–RQ7 **sin entidades**. La plataforma del 01 no se reabre.
+
+**Decidí yo:** stock solo vía movimiento; transferencia solo si hay multi-ubicación; no fijar estados borrador/confirmado hasta tu respuesta.
+
+**Necesito que elijas (recomendado ✅):**
+
+| | Pregunta | ✅ |
+|--|----------|-----|
+| P1 | Tipo de operación | Almacén / distribución |
+| P2 | Lugares de stock | Un solo almacén |
+| P3 | Salida sin existencia | Bloquear |
+| P4 | Confirmación | Un solo paso (al guardar mueve stock) |
+| P5 | Primera versión | Entrada + salida + ajuste |
+| P6 | Proveedor/cliente en el movimiento | No; motivo + referencia texto |
+
+Con tus respuestas cierro el 02 y recién después entramos a entidades.
+
+## User
+
+puntos 1, 2, 3, 4, 5,6 del contexto. sigueindo mis instrucciones. podrias estruturar entidades y flujos que cumplan lo que solicitan
+
+## Assistant
+
+Primero reviso si en el repo hay un documento de contexto con puntos numerados, porque hasta ahora solo encontré los prompts.
+
+### Tool Run Terminal Command V2
+
+## Assistant
+
+There's a context PDF I missed earlier. Reading it.
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\recursos\\Evaluacion IA.pdf"}
+```
+
+## Assistant
+
+El contexto es `recursos/Evaluacion IA.pdf`, que no había detectado antes. Sus secciones 1–6 responden casi todas las preguntas del 02. Reviso los scripts y el modelo actual antes de estructurar.
+
+### Tool Run Terminal Command V2
+
+## Assistant
+
+The PDF covers sections 1–6 completely, so they settle questions P1–P6 from the 02 draft. I'm replacing that draft with a document of entities and flows based on the PDF.
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\database\\system\\001_CreateUserProfiles.sql"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\database\\system\\004_SeedPermissionStub.sql"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.Web\\Views\\Shared\\_Sidebar.cshtml"}
+```
+
+### Tool Run Terminal Command V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+## Assistant
+
+Rehíce el análisis 02 con las entidades y los flujos de Productos, Movimientos, Historial y Reporte. Antes de aprobarlo necesito que respondas tres preguntas: dos chocan con lo aprobado en el 01.
+
+El contexto al que te refieres es `recursos/Evaluacion IA.pdf`, que no había leído antes. Sus secciones 1 a 6 ya respondían las seis preguntas del borrador anterior, así que las quité y registré esas respuestas como decisiones tuyas. El documento ahora es `docs/analisis/02-productos-movimientos-reporte.md`.
+
+**Qué quedó:**
+- **Tablas:** `Categories`, `ProductStatuses`, `MovementTypes`, `Products` (11 campos; los 4 de auditoría justifican pasar de 10) e `InventoryMovements`. Los movimientos nunca se editan ni se borran y guardan la existencia anterior y la posterior.
+- **Flujos:**
+  - Productos: listar, buscar, dar de alta, editar y desactivar.
+  - Movimientos: una sola pantalla de captura para entrada, salida y ajuste.
+  - Historial: con filtros.
+  - Reporte: con las 8 columnas en el orden del contexto y el total de las filas filtradas.
+- **Reglas:** R1 a R12, todas sacadas del contexto. Ninguna es inventada, salvo la R12, que depende de P1.
+- **Permisos, endpoints de la API y menú:** el menú queda como pide el contexto.
+
+**Qué decidí yo:**
+- **La existencia no se guarda en `Products`:** sale del último movimiento del producto. Así siempre cuadra con el historial y el seed se arma solo con INSERT.
+- **Concurrencia en los movimientos:** cada movimiento se registra en una transacción que bloquea la fila del producto, para que dos solicitudes simultáneas no dejen la existencia en negativo.
+- **Productos:** el código no se puede editar después del alta y un producto desactivado se puede reactivar.
+
+**Lo que te pregunto (✅ = recomendado):**
+- **P1.** ¿Se puede desactivar un producto que todavía tiene existencia?
+  - ✅ No: primero se lleva a 0 con un ajuste y después se desactiva.
+  - Sí, y el reporte también incluye los inactivos.
+- **P2.** El contexto pide dos archivos, `01_Estructura.sql` y `02_Datos.sql`, y hoy hay scripts numerados por cada base.
+  - ✅ Mantener las dos bases y que esos dos archivos sean la única fuente, con una sección por base. Sustituyen a los numerados actuales.
+- **P3.** El contexto pide que el usuario `admin` / `Admin123!` venga en el script de datos; en el 01 lo crea un proceso al arrancar la API, con la contraseña de user-secrets.
+  - ✅ Insertarlo en el script con el hash ya calculado, nunca la contraseña en texto, y quitar ese proceso. Además, los movimientos de ejemplo necesitan ese usuario como responsable.
+
+Fuera de este punto: el contexto también exige `PROMPTS.md` y que el README liste lo que quede incompleto; ninguno de los dos está en un documento todavía.
+
+## User
+
+2 y 3 no te corresponde. el 1 es mejor si visamos que al desactivarlo y no esta en 0 no lo deje
+
+## Assistant
+
+Aplico tu decisión de P1 y quito P2 y P3 del documento.
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+## Assistant
+
+El análisis 02 ya no tiene preguntas pendientes y está listo para que lo apruebes.
+
+- **P1 aplicado (R12):** si un producto no tiene existencia 0, no se deja desactivar. Se avisa al usuario con las unidades que tiene y que primero debe llevarlo a 0 con un ajuste. Lo valida la API, con el mismo bloqueo por producto que usan los movimientos.
+- **Reporte:** solo muestra productos activos. Con esta regla, un producto inactivo siempre tiene existencia 0 y no suma valor.
+- **P2 y P3:** los quité del documento y dejé registrado que no son temas del analista.
+
+El documento está en `docs/analisis/02-productos-movimientos-reporte.md`.
+
+## User
+
+explicame el flujo de tu mapeo y como lo haria ene l sistema. se simple en la explicacion.
+
+## Assistant
+
+La idea es simple: **el producto no guarda su existencia; la existencia sale de sus movimientos.** Cada entrada, salida o ajuste queda escrito como un renglón, y el último renglón de un producto dice cuántas unidades hay.
+
+## Cómo se relacionan las tablas
+
+```mermaid
+flowchart LR
+    Cat[Categories] --> Prod[Products]
+    Est[ProductStatuses] --> Prod
+    Prod --> Mov[InventoryMovements]
+    Tipo[MovementTypes] --> Mov
+    Usr[UserProfiles] --> Mov
+```
+
+- **Products**: código, nombre, categoría, precio, mínimo y si está activo.
+- **InventoryMovements**: qué producto, de qué tipo, cuántas unidades, existencia antes y después, motivo, fecha y quién lo hizo.
+- **Categorías, estatus y tipos**: listas fijas que se cargan por script.
+
+## Ejemplo con un producto
+
+Se da de alta el *Mouse USB*. No tiene movimientos, así que su existencia es **0**.
+
+| # | Tipo | Cantidad | Antes | Después | Motivo |
+|---|------|----------|-------|---------|--------|
+| 1 | ENTRADA | +20 | 0 | 20 | Carga inicial |
+| 2 | SALIDA | −5 | 20 | 15 | — |
+| 3 | AJUSTE | −2 | 15 | 13 | Se dañaron 2 |
+
+La existencia actual es **13**, el "Después" del último renglón. No hay que sumar nada ni guardar el número en otro lado.
+
+## Qué pasa en el sistema al registrar un movimiento
+
+1. En la pantalla **Movimientos**, el usuario elige el tipo, busca el producto (ve su existencia actual), escribe la cantidad y el motivo si es ajuste, y guarda.
+2. La **Web** solo envía esos datos a la **API**.
+3. La **API**, dentro de una sola transacción:
+   - bloquea ese producto un instante para que nadie más lo mueva al mismo tiempo;
+   - revisa que el producto esté activo y que la cantidad sea válida;
+   - lee la existencia actual (13) y calcula la nueva (por ejemplo, 13 − 15 = −2);
+   - si la nueva queda negativa, **rechaza** con el mensaje "Existencia insuficiente: disponible 13";
+   - si todo está bien, **guarda el renglón** con la existencia antes y después, y libera el bloqueo.
+4. La Web muestra "Guardado: 13 → 10" y deja el formulario listo para la siguiente captura.
+
+## De dónde sale cada pantalla
+
+- **Productos**: los datos del producto más su existencia (el último movimiento). Estado de stock: BAJO si existencia ≤ mínimo; si no, NORMAL.
+- **Desactivar**: solo se permite si la existencia es 0. Si no, se avisa "tiene 13 unidades, llévalo a 0 con un ajuste".
+- **Historial**: la tabla de movimientos tal cual, del más reciente al más antiguo. Nunca se edita ni se borra.
+- **Reporte**: por cada producto activo, precio × existencia = valor, y al pie la suma de las filas que dejan los filtros.
+
+## Por qué así
+
+- **No se descuadra:** el número que ves siempre coincide con el historial, porque sale de ahí.
+- **No se pierde nada:** cada cambio tiene quién, cuándo y cuánto había antes y después.
+- **No hay choques:** si dos personas registran al mismo tiempo sobre el mismo producto, la segunda espera un instante y trabaja con la existencia ya actualizada, así que nunca queda en negativo.
+
+## User
+
+algo que no veo que hayas estandarizado, son identity, borrado logico, campos de modiciacion registros fechas.... estas haciendo una normalizacion de tablas para un saas ejemplo, no lo cumples...
+
+## Assistant
+
+Tienes razón: cada tabla usa un tipo de llave, un nombre de fecha y un criterio de auditoría distinto. Voy a fijar un estándar único de columnas y aplicarlo a todas las tablas del 02.
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\docs\\analisis\\02-productos-movimientos-reporte.md"}
+```
+
+### Tool Run Terminal Command V2
+
+### Tool Run Terminal Command V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+## Assistant
+
+Ya quedó un estándar único que cumplen todas las tablas de la BD Sistema, incluidas las que ya construimos en el 01. Está en una sección nueva al inicio del documento 02.
+
+**Cómo es el estándar.** Hay dos tipos de tabla:
+
+| Columna | Tablas que se editan | Tablas que solo reciben inserciones (movimientos, bitácora) |
+|---------|:-:|:-:|
+| `Id` autonumérico (`IDENTITY`) | ✔ | ✔ |
+| `StatusId` (Activo / Inactivo) = borrado lógico | ✔ | — |
+| `CreatedAtUtc` + `CreatedBy` | ✔ | ✔ (son la fecha y el responsable del evento) |
+| `UpdatedAtUtc` + `UpdatedBy` | ✔ | — |
+| `RowVersion` (control de ediciones simultáneas) | ✔ | — |
+
+Las reglas que lo acompañan (E1 a E10 en el documento):
+- No se borra físicamente nada, y ninguna llave foránea borra en cascada.
+- Todas las fechas se guardan en UTC con el sufijo `Utc`.
+- La auditoría la llena la API con el usuario de la sesión; la Web nunca la envía.
+- Las listas muestran solo activos por defecto.
+- Los nombres de tablas, columnas, índices y restricciones siguen un mismo patrón.
+
+**Qué cambió en las tablas del 02:**
+- El catálogo de estatus pasó a ser uno solo para todo el sistema (`RecordStatuses`). Sirve como borrado lógico de cualquier tabla y cubre el "Activo / Inactivo" que pide el PDF.
+- La fecha y el responsable de un movimiento ahora son su `CreatedAtUtc` y `CreatedBy`.
+- `Products` usa `RowVersion` para detectar ediciones simultáneas.
+- `Products` queda en 12 campos: 5 de negocio y 7 del estándar. Esa es la justificación técnica que pide el PDF para pasar de 10.
+
+**Lo que esto toca de lo ya construido.** Las cuatro tablas del 01 no cumplían el estándar:
+- `UserProfiles` usa un identificador `uniqueidentifier` en lugar de un número autonumérico.
+- `Permissions` no tiene auditoría.
+- `RolePermissions` borra en cascada.
+- `AccessLogs` usa otro nombre para su fecha (`OccurredAtUtc`).
+
+En el documento dejé una tabla "Alineación" con el cambio de cada una. Corregirlas implica modificar scripts y código ya aprobados; eso lo planea el planificador con tu autorización.
+
+Una cosa que no agregué: si el sistema va a ser realmente multiempresa (SaaS), faltaría un identificador de empresa en las tablas. No está pedido en el PDF.
+
+## User
+
+entonces a nivel modular como quedarian los menus lisado en earbol con esto que porones?
+
+## Assistant
+
+El menú visible queda **plano**, con las seis opciones y en el orden que pide el contexto (RF03). Por dentro, cada opción pertenece a un módulo y cada botón está ligado a un permiso. Así se ve el árbol, con el permiso de cada nodo:
+
+```text
+Inventario
+├── Inicio                                   (cualquier usuario con sesión)
+│
+├── Productos                     [módulo: productos]
+│   ├── Ver listado / buscar / filtrar       productos.ver
+│   ├── Nuevo producto (modal)               productos.crear
+│   ├── Editar (modal)                       productos.editar
+│   └── Desactivar / Reactivar               productos.activar
+│
+├── Movimientos                   [módulo: movimientos]
+│   └── Captura (una pantalla, elegir tipo)
+│       ├── Entrada                          movimientos.entrada
+│       ├── Salida                           movimientos.salida
+│       └── Ajuste                           movimientos.ajuste
+│
+├── Historial                     [módulo: historial]
+│   └── Ver movimientos / filtrar            historial.ver
+│
+├── Reporte                       [módulo: reporte]
+│   └── Existencias y valor / filtrar        reporte.ver
+│
+└── Cerrar sesión                            (cualquier usuario con sesión)
+
+Encabezado → menú de cuenta
+├── Cambiar contraseña (modal)               (cualquier usuario con sesión)
+└── Cerrar sesión
+```
+
+**Cómo funciona:**
+- **En el menú lateral**, un elemento se muestra si el usuario tiene al menos un permiso de su módulo. Por ejemplo, Movimientos aparece si tiene entrada, salida o ajuste.
+- **Dentro de la pantalla**, cada botón u opción aparece solo con su permiso. En Movimientos, el selector de tipo muestra únicamente los tipos permitidos.
+- **La API** vuelve a revisar el permiso en cada operación, aunque la Web lo haya ocultado.
+- **Categorías** no aparece en el menú, porque el contexto dice que no lleva pantalla de mantenimiento. Solo se usa como lista desplegable en Productos y como filtro en el Reporte.
+
+Hay dos detalles respecto a lo que ya está construido:
+- Hoy el menú lateral solo tiene Inicio, y Cerrar sesión vive en el encabezado. El contexto pide Cerrar sesión **también** en el menú, así que queda en los dos lugares.
+- Por ahora todo se asigna al rol `Administrador`. Si más adelante hay otros roles, solo se les asignan permisos y el árbol no cambia.
+
+## User
+
+si contemplas que mis filtros seran maestros.. practicamente puedo buscar cualquier cosa, ademas que mis reportes seran consultados por sps, implenta paginacion
+
+## Assistant
+
+Lo agrego al 02 como un estándar más: una búsqueda maestra en cada listado, las consultas de listados y del reporte en procedimientos almacenados, y paginación en el servidor.
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+## Assistant
+
+Ya está en el documento 02: todos los listados tienen una búsqueda maestra, se leen con procedimientos almacenados y se paginan en el servidor.
+
+**Búsqueda maestra**
+- Hay una sola caja por pantalla y busca en todas las columnas visibles.
+- Cada palabra que escribas tiene que aparecer en alguna columna. Por ejemplo, `mouse ele` encuentra el Mouse USB de Electrónica. Escribir más palabras acota más.
+- No distingue mayúsculas ni acentos. Si escribes un número, también lo busca en precios, cantidades y existencias.
+- Se suma a los filtros propios de cada pantalla: categoría, tipo, fechas y estatus.
+- En el Reporte cubre el filtro "por código o nombre" que pide el contexto.
+
+**Procedimientos almacenados (solo lectura)**
+
+| Procedimiento | Pantalla |
+|---------------|----------|
+| `usp_Products_List` | Productos |
+| `usp_InventoryMovements_List` | Historial |
+| `usp_Report_Stock` | Reporte (incluye el total general) |
+
+- La existencia actual sale de una sola vista, `vw_ProductStock`.
+- Las altas, ediciones y movimientos se siguen guardando desde la API, para que el bloqueo y las validaciones vivan en un solo lugar.
+- El ordenamiento no arma SQL concatenando texto, así que no hay riesgo de inyección.
+
+**Paginación**
+- 20 filas por página por defecto, con opción de 50 y 100.
+- El pie de la tabla muestra "Mostrando 21–40 de 57", con Anterior, Siguiente y números de página.
+- Se puede ordenar haciendo clic en los encabezados de las columnas permitidas.
+- El total de filas y el total general del Reporte se calculan sobre todo lo filtrado, no solo sobre la página visible.
+- Al cambiar un filtro se regresa a la página 1.
+- La búsqueda, la página y el orden quedan en la dirección de la página, así que recargar o regresar no pierde la vista.
+
+Dejé esto como regla para cualquier listado futuro. El autocompletado de productos en Movimientos no se pagina: muestra como máximo 10 resultados.
+
+## User
+
+todos mis catalogos son paginados, si lo contemplaste?
+
+## Assistant
+
+No del todo. Los listados (Productos, Historial y Reporte) sí quedaron paginados, pero los catálogos (Categorías, Tipos de movimiento y Estatus) los había dejado como listas completas para las listas desplegables, y el autocompletado de productos con un tope de 10. Lo corrijo para que todos sean paginados.
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+## Assistant
+
+Ya quedó: en el documento 02 todos los catálogos son paginados, igual que los listados, y lo registré como decisión tuya.
+
+**Qué cambió:**
+- **Categorías, Tipos de movimiento, Estatus y el buscador de productos de Movimientos** ahora responden por páginas y aceptan la búsqueda maestra. Cada uno tiene su propio procedimiento de lectura:
+  - `usp_Categories_List`
+  - `usp_MovementTypes_List`
+  - `usp_RecordStatuses_List`
+  - `usp_Products_Lookup`
+- **En los formularios y filtros** ya no hay listas desplegables que carguen todo el catálogo. Se usa un selector con búsqueda que:
+  - carga 20 elementos al abrirse;
+  - filtra mientras escribes;
+  - trae la siguiente página al llegar al final de la lista;
+  - se maneja con teclado (flechas, Enter y Esc).
+- **Elementos inactivos:** un elemento de catálogo que se desactivó sigue apareciendo, marcado como inactivo, al editar un registro que ya lo usa. No aparece para elecciones nuevas.
+- **Regla para lo que venga:** todo catálogo nuevo se expone paginado, con su procedimiento `usp_<Catalogo>_List`, y usa el mismo selector.
+
+Hice un procedimiento por catálogo en lugar de uno genérico, porque uno genérico tendría que armar el SQL con el nombre de la tabla.
+
+## User
+
+los campos de listados dropdowns o asi quiero busqueda, deben se r lisatado con busqueda, los filtros deben estar en sitnoia
+
+## Assistant
+
+Lo dejo como regla en el 02: todo campo que se elige de una lista (en formularios o en filtros) es una lista con búsqueda, y los filtros funcionan igual y en sintonía en todas las pantallas.
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+## Assistant
+
+Ya está en el documento 02 y lo registré como decisión tuya.
+
+**Listas con búsqueda.** Ningún campo de opciones usa una lista desplegable simple, ni en formularios ni en filtros. Todos son listas con búsqueda y carga por páginas, aunque tengan dos o tres opciones, como el estatus o el tipo de movimiento. Para el componente propongo **Tom Select** (licencia Apache 2.0). Va local en `wwwroot/lib` y se adapta al diseño; ya trae carga por páginas, manejo con teclado y accesibilidad.
+
+**Filtros en sintonía:**
+- **La misma barra en todas las pantallas:** primero la búsqueda maestra, luego los filtros propios y al final "Limpiar filtros".
+- **Un mismo dato se filtra igual en todos lados.** "Categoría" funciona igual en Productos y en Reporte, y "Tipo" igual en Movimientos y en Historial. Para mantener esa sintonía agregué el filtro de categoría también en Productos.
+- **Todo cambia al mismo tiempo:** al mover un filtro se actualizan la tabla, los totales, el paginador y la dirección de la página, y se vuelve a la página 1.
+- **Filtros visibles:** cada filtro activo aparece como una etiqueta que se puede quitar.
+- **Filtros relacionados:** si una pantalla tiene dos, el segundo solo ofrece opciones compatibles con el primero. Si el valor elegido deja de ser compatible, se limpia y se avisa.
+- **Inactivos:** los filtros también los muestran, marcados, para poder consultar historial. Los campos de captura solo muestran los activos.
+
+| Pantalla | Barra de filtros |
+|----------|------------------|
+| Productos | Búsqueda · Categoría · Estatus |
+| Historial | Búsqueda · Tipo · Fecha desde / hasta |
+| Reporte | Búsqueda · Categoría |
+
+## User
+
+aqui quiero marcar enfasis en que mi logica de errores, avisos y alertas, validaciones, debe ser de todo lo que hemos implementado, para mantener solido y unificado la estructura y el desarrollo
+
+## Assistant
+
+Esto es transversal a todo lo construido, así que lo trabajo como punto 03. Antes reviso cómo están implementados hoy los errores, avisos y validaciones, para no afirmar nada sin verificarlo.
+
+### Tool Run Terminal Command V2
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\docs\\adr\\002-auth-result.md"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\docs\\adr\\004-modales-e-iconografia.md"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.Api\\Controllers\\AuthResultHttpMapper.cs"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.Api\\Program.cs"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.Contracts\\Errors\\ValidationProblemDetailsDto.cs"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.ApiClient\\Auth\\InventarioApiException.cs"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.Web\\Filters\\InventarioApiExceptionFilter.cs"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.Web\\Views\\Shared\\_Alerts.cshtml"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.Application\\Auth\\AuthErrorCode.cs"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.Web\\wwwroot\\js\\site.js"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.Web\\Controllers\\AccountController.cs"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.Web\\Views\\Shared\\_Confirm.cshtml"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.Web\\Views\\Shared\\Error.cshtml"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.Web\\Program.cs"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.Web\\Models\\ChangePasswordViewModel.cs"}
+```
+
+### Tool Read File V2
+
+```
+{"path":"C:\\Git\\evaluacion-ia\\src\\Inventario.Web\\Views\\Account\\_ChangePasswordForm.cshtml"}
+```
+
+### Tool Ripgrep Raw Search
+
+```
+{"pattern":"Serilog|TempData\\[","path":"C:\\Git\\evaluacion-ia\\src","glob":"*.{cs,csproj,cshtml}","outputMode":"content","caseInsensitive":false,"multiline":false,"toolCallId":"toolu_016dcKggXQbi8oHcayiocJ2c","offset":0}
+```
+
+## Assistant
+
+Confirmado: la Web no tiene Serilog. Escribo el 03.
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Ripgrep Raw Search
+
+```
+{"pattern":"Errores: códigos","path":"C:\\Git\\evaluacion-ia\\docs\\analisis\\02-productos-movimientos-reporte.md","contextAfter":5,"caseInsensitive":false,"multiline":false,"toolCallId":"toolu_01DS1RSMzFzMwJzRqcgtp3HP","offset":0}
+```
+
+### Tool Edit File V2
+
+## Assistant
+
+Escribí el estándar único en un documento nuevo, `docs/analisis/03-errores-avisos-validaciones.md`. Aplica a lo ya construido (sesión, cambio de contraseña, layout), a lo analizado en el 02 y a todo módulo futuro. Además, el 02 ya usa sus códigos de error.
+
+**Lo que encontré en el código hoy:** 12 inconsistencias, listadas una por una en el documento (A1 a A12). Las principales:
+- El patrón de resultado de la API existe solo para autenticación.
+- La Web reescribe los mensajes que ya manda la API y traduce los errores a mano en cada pantalla.
+- Un 403 (sin permiso) termina en el Login aunque haya sesión.
+- Los avisos no tienen tipo "advertencia" ni funcionan en peticiones AJAX.
+- La confirmación tiene un texto fijo.
+- La Web no registra logs.
+
+**El estándar, en corto:**
+- **Errores:** todos los casos de uso devuelven un resultado con un código estable (`validation`, `business.rule`, `conflict.duplicate`, `forbidden`, etc.). Un solo mapeador de la API lo convierte en HTTP con un contrato de error único. Ese contrato lleva título en español, mensaje, código, errores por campo y un código de referencia.
+- **Mensajes:** una sola fuente. La API redacta los de negocio y de validación, y la Web los muestra tal cual. La Web solo redacta los suyos (sin conexión o error inesperado), todos desde una sola clase de textos.
+- **Validaciones:**
+  - Las de formato se declaran una vez en los DTO de Contracts; de ahí salen la del navegador, la de la Web y la de la API.
+  - Las reglas de negocio viven solo en Application.
+  - La base de datos es la última barrera, y sus errores se traducen a los mismos códigos, nunca a un error 500.
+- **En pantalla:**
+  - Un traductor único decide dónde se ve cada error: en el campo, en el formulario, como aviso o en una página.
+  - Avisos de cuatro tipos (éxito, información, advertencia y error), con el mismo componente tras redirigir o en AJAX.
+  - Confirmación configurable, solo para acciones de baja o salir con cambios sin guardar.
+  - El botón se bloquea mientras procesa, para evitar el doble envío.
+  - Lo capturado nunca se pierde ante un error.
+- **Logs:** Serilog en la API y en la Web, unidos por el mismo `traceId`. Ese mismo código es el que ve el usuario como "código de referencia". Nunca se registran contraseñas ni tokens.
+
+**Lo que te pregunto:**
+- **P1.** Si una salida o un ajuste deja el producto en estado BAJO (existencia menor o igual al mínimo), ¿se avisa?
+  - ✅ Sí: se guarda, y el aviso sale como advertencia, por ejemplo "Mouse USB quedó en 4 (mínimo 5)".
+  - No: solo se muestra el aviso de éxito normal.
+
+Alinear lo ya construido implica tocar código aprobado. En el documento está la lista de cambios para que el planificador lo programe cuando lo autorices.
+
+## User
+
+adelante lo autorizo
+
+## Assistant
+
+Registro tu autorización en los documentos. Yo no programo; la ejecución le corresponde al planificador.
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+## Assistant
+
+Dejé registrada tu autorización como decisión del dueño en los dos documentos. Ya se pueden modificar las piezas construidas del 01:
+- **Documento 02:** las tablas `UserProfiles`, `Permissions`, `RolePermissions` y `AccessLogs` se alinean al estándar, y la base de datos se recrea.
+- **Documento 03:** errores, avisos y validaciones de lo ya construido (A1 a A12), incluidas las adendas a ADR-002 y ADR-004.
+
+Para cerrar el 03 solo falta tu respuesta a P1: cuando una salida o un ajuste deja un producto en BAJO, ¿se avisa?
+- ✅ Sí: se guarda, y el aviso sale como advertencia, por ejemplo "Mouse USB quedó en 4 (mínimo 5)".
+- No: solo se muestra el aviso de éxito normal.
+
+Con esa respuesta marco el 02 y el 03 como aprobados y pasan al planificador.
+
+## User
+
+si, avisa
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+### Tool Edit File V2
+
+## Assistant
+
+Ya quedó: si una salida o un ajuste deja un producto en BAJO, el movimiento se guarda igual y se muestra una advertencia en lugar del aviso de éxito, por ejemplo "Guardado. Mouse USB quedó en 4 (mínimo 5)".
+
+- **En el 02** es la regla nueva R13, y el paso del flujo de Movimientos ya la menciona.
+- **En el 03** es la regla W10: una respuesta exitosa puede traer advertencias que no bloquean, y la Web las muestra con el mismo componente de avisos.
+
+Con esto, el 02 (Productos, Movimientos, Historial y Reporte) y el 03 (errores, avisos y validaciones) quedan **aprobados**, sin preguntas pendientes, y ya los puede tomar el planificador. Las modificaciones a lo ya construido del 01 están autorizadas y registradas en los dos documentos.

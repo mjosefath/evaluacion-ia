@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewData["Title"] ?? "Inicio") — Inventario</title>
+    <partial name="_ThemeBoot" />
+    <partial name="_NavBoot" />
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/tom-select/css/tom-select.default.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <partial name="_LucideSprite" />
+    <div class="app-shell" id="app-shell">
+        <partial name="_Sidebar" />
+        <div class="app-nav-overlay" id="app-nav-overlay" data-nav-overlay hidden></div>
+        <div class="app-main">
+            <partial name="_Header" />
+            <main class="app-content" id="main-content">
+                <partial name="_Alerts" />
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <partial name="_Confirm" />
+    <partial name="_ActionModal" />
+    <partial name="_Loading" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/tom-select/js/tom-select.complete.min.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/inventario-filters.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

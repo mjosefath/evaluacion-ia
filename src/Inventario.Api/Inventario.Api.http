@@ -1,0 +1,41 @@
+@Inventario.Api_HostAddress = https://localhost:7196
+
+### Login (anónimo)
+POST {{Inventario.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "userName": "",
+  "password": ""
+}
+
+### Refresh (anónimo)
+POST {{Inventario.Api_HostAddress}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": ""
+}
+
+### Logout (Bearer)
+POST {{Inventario.Api_HostAddress}}/api/auth/logout
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "refreshToken": ""
+}
+
+### Change password (Bearer)
+POST {{Inventario.Api_HostAddress}}/api/auth/change-password
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "",
+  "newPassword": ""
+}
+
+### Me (Bearer)
+GET {{Inventario.Api_HostAddress}}/api/auth/me
+Authorization: Bearer {{accessToken}}

@@ -1,0 +1,12 @@
+@model string
+@{
+    var symbol = Model?.ToLowerInvariant() switch
+    {
+        "success" => "lucide-circle-check",
+        "info" => "lucide-info",
+        "warning" => "lucide-triangle-alert",
+        "error" => "lucide-circle-alert",
+        _ => "lucide-info"
+    };
+}
+<svg class="icon alert-icon" aria-hidden="true" focusable="false"><use href="#@symbol"/></svg>

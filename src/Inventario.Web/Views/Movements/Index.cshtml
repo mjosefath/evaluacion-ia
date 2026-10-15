@@ -1,0 +1,27 @@
+@model Inventario.Web.Models.CreateMovementFormModel
+@{
+    ViewData["Title"] = "Movimientos";
+}
+
+<div class="page-toolbar">
+    <div class="page-toolbar__text">
+        <h1 class="app-page-title page-toolbar__title">Movimientos</h1>
+        <p class="page-toolbar__lead text-muted">
+            Registra entrada, salida o ajuste. Tras guardar, el formulario queda listo para la siguiente captura.
+        </p>
+    </div>
+</div>
+
+<section class="capture-panel" aria-labelledby="capture-heading">
+    <header class="capture-panel__header">
+        <h2 id="capture-heading" class="capture-panel__title">Nueva captura</h2>
+        <p class="capture-panel__hint text-caption">Teclado: elige tipo, busca producto, cantidad y Guardar.</p>
+    </header>
+    <div class="capture-panel__body" data-movement-page>
+        <partial name="_MovementCreateForm" model="Model" />
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/movements-capture.js" asp-append-version="true"></script>
+}

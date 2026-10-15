@@ -1,0 +1,13 @@
+@model Inventario.Web.Models.ReportStockViewModel
+@{
+    ViewData["Name"] = "categoryId";
+    ViewData["Label"] = "Categoría";
+    ViewData["Catalog"] = "categories";
+    ViewData["ActiveOnly"] = false;
+    ViewData["Placeholder"] = "Todas las categorías";
+    ViewData["Value"] = Model.Query.CategoryId?.ToString();
+    ViewData["ValueLabel"] = Model.CategoryLabel;
+    ViewData["FilterDefault"] = null;
+    ViewData["FilterEmpty"] = null;
+}
+<partial name="Ui/_CatalogLookup" />

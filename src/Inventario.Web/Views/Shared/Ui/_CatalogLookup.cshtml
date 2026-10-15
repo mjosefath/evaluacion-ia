@@ -1,0 +1,39 @@
+@*
+  Selector de catálogo con Tom Select (PG9–PG10).
+
+  ViewData: Name, Label, Catalog, Value, ValueLabel, ActiveOnly, Placeholder,
+            FilterDefault (restaurar al Limpiar), FilterEmpty=keep (vacío se conserva en URL).
+*@
+@{
+    var name = ViewData["Name"] as string ?? "id";
+    var label = ViewData["Label"] as string ?? name;
+    var catalog = ViewData["Catalog"] as string ?? "categories";
+    var value = ViewData["Value"] as string;
+    var valueLabel = ViewData["ValueLabel"] as string;
+    var activeOnly = ViewData["ActiveOnly"] as bool? ?? false;
+    var placeholder = ViewData["Placeholder"] as string ?? "Buscar…";
+    var filterDefault = ViewData["FilterDefault"] as string;
+    var filterEmpty = ViewData["FilterEmpty"] as string;
+    var inputId = $"lookup-{name}-{Guid.NewGuid():N}"[..20];
+}
+<div class="form-field filter-field catalog-lookup"
+     data-catalog-lookup
+     data-catalog="@catalog"
+     data-active-only="@(activeOnly ? "true" : "false")">
+    <label class="form-label" for="@inputId">@label</label>
+    <select id="@inputId"
+            name="@name"
+            class="catalog-lookup__select"
+            data-catalog-select
+            data-filter-field="@name"
+            data-filter-label="@label"
+            data-filter-default="@filterDefault"
+            data-filter-empty="@filterEmpty"
+            placeholder="@placeholder"
+            autocomplete="off">
+        @if (!string.IsNullOrEmpty(value))
+        {
+            <option value="@value" selected>@(valueLabel ?? value)</option>
+        }
+    </select>
+</div>

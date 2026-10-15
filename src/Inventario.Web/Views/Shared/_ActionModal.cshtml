@@ -1,0 +1,29 @@
+@*
+  Modal de acción genérico (T03-01/T03-02 / T02-15).
+  Abrir: data-modal-open + data-modal-title + data-modal-url (GET partial HTML).
+  Cerrar: closeModal / data-modal-close / Esc. Backdrop no cierra.
+  Guardar: data-modal-primary con form= id del formulario cargado (AJAX).
+*@
+<dialog id="app-action-modal"
+        class="action-modal ui-dialog"
+        aria-labelledby="app-action-modal-title"
+        aria-modal="true"
+        tabindex="-1">
+    <div class="action-modal-frame">
+        <header class="action-modal-header">
+            <h2 id="app-action-modal-title" class="action-modal-title" data-modal-title>Acción</h2>
+        </header>
+        <div class="action-modal-body" data-modal-body>
+            @* Contenido cargado vía data-modal-url *@
+        </div>
+        <footer class="action-modal-footer">
+            <button type="button" class="btn btn-outline" data-modal-close>Cancelar</button>
+            <button type="submit"
+                    class="btn btn-primary"
+                    data-modal-primary
+                    hidden>
+                Guardar
+            </button>
+        </footer>
+    </div>
+</dialog>

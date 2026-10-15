@@ -1,0 +1,48 @@
+@{
+    var displayName = User?.Identity?.IsAuthenticated == true
+                      && !string.Equals(User.Identity.Name, "pending", StringComparison.Ordinal)
+        ? User.Identity!.Name
+        : (ViewData["DisplayName"] as string ?? "Usuario");
+}
+
+<header class="app-header">
+    <div class="app-header-start">
+        <button type="button"
+                class="btn btn-ghost app-nav-toggle"
+                id="app-nav-toggle"
+                aria-controls="app-sidebar"
+                aria-expanded="false"
+                aria-label="Abrir menú de navegación"
+                data-nav-toggle>
+            <svg class="icon app-nav-toggle-icon-open" aria-hidden="true" focusable="false"><use href="#lucide-menu"/></svg>
+            <svg class="icon app-nav-toggle-icon-close" aria-hidden="true" focusable="false" hidden><use href="#lucide-x"/></svg>
+        </button>
+    </div>
+    <div class="app-header-actions">
+        <partial name="_ThemeToggle" />
+        <span class="app-header-user" id="header-display-name">@displayName</span>
+        <details class="app-header-menu">
+            <summary class="btn btn-outline" aria-haspopup="menu">
+                <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-circle-user"/></svg>
+                <span>Cuenta</span>
+            </summary>
+            <div class="app-header-menu-panel" role="menu">
+                <a role="menuitem"
+                   href="#"
+                   data-modal-open="app-action-modal"
+                   data-modal-title="Cambiar contraseña"
+                   data-modal-url="@Url.Action("ChangePasswordForm", "Account")">
+                    <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-lock"/></svg>
+                    <span>Cambiar contraseña</span>
+                </a>
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" role="menuitem">
+                        <svg class="icon" aria-hidden="true" focusable="false"><use href="#lucide-log-out"/></svg>
+                        <span>Cerrar sesión</span>
+                    </button>
+                </form>
+            </div>
+        </details>
+    </div>
+</header>

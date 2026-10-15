@@ -1,0 +1,43 @@
+@model Inventario.Web.Models.FilterBarModel
+@{
+    var search = Model.Search ?? "";
+    var auto = Model.AutoSubmit ? "true" : "false";
+}
+@*
+  Barra de filtros (FL1–FL4). Uso:
+
+  @{
+    var filters = await Html.PartialAsync("Ui/_DemoCatalogFilters", model);
+  }
+  <partial name="Ui/_FilterBar" model="new FilterBarModel { Search = Model.Search, Filters = filters }" />
+
+  JS: InventarioUi.filters.bind(root) sincroniza URL (PG7), badges y Limpiar.
+*@
+<div class="filter-bar" data-filter-bar data-filter-autosubmit="@auto">
+    <div class="filter-bar__row">
+        <div class="filter-bar__search">
+            <label class="visually-hidden" for="filter-search">Búsqueda</label>
+            <input id="filter-search"
+                   type="search"
+                   class="form-input"
+                   name="@Model.SearchParam"
+                   value="@search"
+                   placeholder="@Model.SearchPlaceholder"
+                   data-filter-field="@Model.SearchParam"
+                   data-filter-label="Búsqueda"
+                   autocomplete="off" />
+        </div>
+        <div class="filter-bar__slots">
+            @if (Model.Filters is not null)
+            {
+                @Model.Filters
+            }
+        </div>
+        <div class="filter-bar__actions">
+            <button type="button" class="btn btn-ghost" data-filter-clear>
+                Limpiar filtros
+            </button>
+        </div>
+    </div>
+    <div class="filter-bar__badges" data-filter-badges hidden></div>
+</div>

@@ -1,0 +1,23 @@
+@*
+  Slots de ejemplo para la demo de UI (T02-13). Productos reales en T02-14.
+*@
+@{
+    ViewData["Name"] = "categoryId";
+    ViewData["Label"] = "Categoría";
+    ViewData["Catalog"] = "categories";
+    ViewData["ActiveOnly"] = false;
+    ViewData["Placeholder"] = "Todas las categorías";
+    ViewData["Value"] = Context.Request.Query["categoryId"].FirstOrDefault();
+}
+<partial name="Ui/_CatalogLookup" />
+
+@{
+    ViewData["Name"] = "statusId";
+    ViewData["Label"] = "Estatus";
+    ViewData["Catalog"] = "record-statuses";
+    ViewData["ActiveOnly"] = false;
+    ViewData["Placeholder"] = "Todos los estatus";
+    ViewData["Value"] = Context.Request.Query["statusId"].FirstOrDefault();
+    ViewData["ValueLabel"] = null;
+}
+<partial name="Ui/_CatalogLookup" />

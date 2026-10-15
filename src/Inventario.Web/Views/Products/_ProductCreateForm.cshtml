@@ -1,0 +1,57 @@
+@model Inventario.Web.Models.ProductCreateFormModel
+@*
+  Alta de producto en action-modal. Submit AJAX (data-modal-ajax-form).
+*@
+<form id="product-form"
+      asp-controller="Products"
+      asp-action="Create"
+      method="post"
+      class="action-modal-form"
+      data-modal-ajax-form
+      novalidate>
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly" class="validation-summary-errors" role="alert"></div>
+
+    <div class="form-field">
+        <label class="form-label" asp-for="Code">Código</label>
+        <input class="form-input"
+               asp-for="Code"
+               maxlength="20"
+               autocomplete="off"
+               data-modal-initial-focus />
+        <span class="form-error" asp-validation-for="Code"></span>
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" asp-for="Name">Nombre</label>
+        <input class="form-input" asp-for="Name" maxlength="150" autocomplete="off" />
+        <span class="form-error" asp-validation-for="Name"></span>
+    </div>
+
+    @{
+        ViewData["Name"] = "CategoryId";
+        ViewData["Label"] = "Categoría";
+        ViewData["Catalog"] = "categories";
+        ViewData["ActiveOnly"] = true;
+        ViewData["Placeholder"] = "Buscar categoría…";
+        ViewData["Value"] = Model.CategoryId > 0 ? Model.CategoryId.ToString() : null;
+        ViewData["ValueLabel"] = null;
+        ViewData["FilterDefault"] = null;
+        ViewData["FilterEmpty"] = null;
+    }
+    <partial name="Ui/_CatalogLookup" />
+    <span class="form-error" asp-validation-for="CategoryId"></span>
+
+    <div class="form-field">
+        <label class="form-label" asp-for="UnitPrice">Precio unitario</label>
+        <input class="form-input" asp-for="UnitPrice" inputmode="decimal" />
+        <span class="form-error" asp-validation-for="UnitPrice"></span>
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" asp-for="MinStock">Stock mínimo</label>
+        <input class="form-input" asp-for="MinStock" inputmode="numeric" />
+        <span class="form-error" asp-validation-for="MinStock"></span>
+    </div>
+</form>
